@@ -416,3 +416,52 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+# ----------------------------------------------------------------------
+# Visual Studio / .NET Core / C#
+# ----------------------------------------------------------------------
+## Binaries and Object files
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.pdb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Temporary files and cache
+.vs/
+.idea/
+.vscode/                 # VS Code settings, but we often want to commit launch.json/settings.json
+*.log
+*.cache
+*.ncb
+*.bak
+*.[Bb]uild
+*.pid
+
+# ----------------------------------------------------------------------
+# Node.js / Angular (in Monopoly.Client)
+# ----------------------------------------------------------------------
+node_modules/
+/dist/
+/out/
+/coverage/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log
+lerna-debug.log*
+
+# ----------------------------------------------------------------------
+# Operating System files (Linux / macOS)
+# ----------------------------------------------------------------------
+# Thumbnails
+.DS_Store
+.Trashes
+*.swp
+*.bak
