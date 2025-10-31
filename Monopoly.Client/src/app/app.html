@@ -230,7 +230,7 @@
           <clipPath id="a"><path fill="#fff" d="M0 0h982v239H0z" /></clipPath>
         </defs>
       </svg>
-      <h1>Hello, {{ title() }}</h1>
+  <h1>Hello, {{ title }}</h1>
       <p>Congratulations! Your app is running. 🎉</p>
     </div>
     <div class="divider" role="separator" aria-label="Divider"></div>
@@ -243,8 +243,9 @@
           { title: 'CLI Docs', link: 'https://angular.dev/tools/cli' },
           { title: 'Angular Language Service', link: 'https://angular.dev/tools/language-service' },
           { title: 'Angular DevTools', link: 'https://angular.dev/tools/devtools' },
+          { title: 'Weather Forecast (backend)', link: '#', action: 'weather' },
         ]; track item.title) {
-          <a
+          <a *ngIf="item.action !== 'weather'"
             class="pill"
             [href]="item.link"
             target="_blank"
@@ -263,6 +264,11 @@
               />
             </svg>
           </a>
+
+          <!-- Weather action pill -->
+          <button *ngIf="item.action === 'weather'" class="pill" (click)="toggleWeather()" type="button">
+            <span>{{ item.title }}</span>
+          </button>
         }
       </div>
       <div class="social-links">
@@ -325,6 +331,16 @@
             />
           </svg>
         </a>
+      </div>
+      <!-- Weather display -->
+      <div *ngIf="showWeather" style="margin-top:1rem; max-width:420px;">
+        <h3>Weather Forecast</h3>
+        <ul>
+          <li *ngFor="let f of weatherForecasts">
+            <strong>{{ f.date | date:'mediumDate' }}</strong> — {{ f.temperatureC }}°C ({{ f.temperatureF }}°F) — {{ f.summary }}
+          </li>
+        </ul>
+        <p *ngIf="weatherForecasts.length === 0">No forecast data available.</p>
       </div>
     </div>
   </div>
