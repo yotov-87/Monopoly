@@ -2,17 +2,17 @@
   <h2>Register</h2>
   <form (ngSubmit)="onRegister()">
     <div>
-      <label>Username</label>
-      <input type="text" [(ngModel)]="username" name="username" required>
+      <label for="register-username">Username</label>
+      <input id="register-username" type="text" [(ngModel)]="username" name="username" required>
     </div>
     <div>
-      <label>Password</label>
-      <input type="password" [(ngModel)]="password" name="password" required>
+      <label for="register-password">Password</label>
+      <input id="register-password" type="password" [(ngModel)]="password" name="password" required>
     </div>
     <div>
-      <label>Confirm Password</label>
-      <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required>
+      <label for="register-confirm-password">Confirm Password</label>
+      <input id="register-confirm-password" type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required>
     </div>
-    <button type="submit">Register</button>
+    <button id="register-submit-btn" type="submit">Register</button>
   </form>
 </div>

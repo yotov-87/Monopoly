@@ -2,10 +2,10 @@
   <h1>Monopoly</h1>
   <div>
     @if (!isAuthenticated) {
-      <button (click)="onLogin()">Login</button>
-      <button (click)="onRegister()">Register</button>
+      <button id="header-login-btn" (click)="onLogin()">Login</button>
+      <button id="header-register-btn" (click)="onRegister()">Register</button>
     } @else {
-      <button (click)="onLogout()">Logout</button>
+      <button id="header-logout-btn" (click)="onLogout()">Logout</button>
     }
   </div>
 </header>
