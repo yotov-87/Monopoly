@@ -28,12 +28,24 @@ export class AuthService {
     localStorage.setItem('authToken', token);
   }
 
+  saveUsername(username: string): void {
+    localStorage.setItem('username', username);
+  }
+
   getToken(): string | null {
     return localStorage.getItem('authToken');
   }
 
+  getUsername(): string | null {
+    return localStorage.getItem('username');
+  }
+
   removeToken(): void {
     localStorage.removeItem('authToken');
+  }
+
+  removeUsername(): void {
+    localStorage.removeItem('username');
   }
 
   isAuthenticated(): boolean {
@@ -42,5 +54,6 @@ export class AuthService {
 
   logout(): void {
     this.removeToken();
+    this.removeUsername();
   }
 }

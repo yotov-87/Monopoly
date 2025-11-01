@@ -20,6 +20,7 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login successful', response);
         this.authService.saveToken(response.token);
+        this.authService.saveUsername(response.username);
         this.router.navigate(['/']);
       },
       error: (error) => {

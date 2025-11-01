@@ -27,6 +27,7 @@ export class RegisterComponent {
       next: (response) => {
         console.log('Registration successful', response);
         this.authService.saveToken(response.token);
+        this.authService.saveUsername(response.username);
         this.router.navigate(['/']);
       },
       error: (error) => {

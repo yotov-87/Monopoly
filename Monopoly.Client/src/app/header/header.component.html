@@ -1,11 +1,15 @@
 <header>
-  <h1>Monopoly</h1>
-  <div>
-    @if (!isAuthenticated) {
-      <button id="header-login-btn" (click)="onLogin()">Login</button>
-      <button id="header-register-btn" (click)="onRegister()">Register</button>
-    } @else {
-      <button id="header-logout-btn" (click)="onLogout()">Logout</button>
-    }
+  <div class="header-container">
+    <h1>Monopoly</h1>
+    <div class="header-actions">
+      @if (!isAuthenticated) {
+        <button id="header-login-btn" (click)="onLogin()">Login</button>
+        <button id="header-register-btn" (click)="onRegister()">Register</button>
+      } @else {
+        <span class="username-display">{{ username }}</span>
+        <button id="header-create-game-btn" class="create-game-btn" (click)="onCreateGame()">Create New Game</button>
+        <button id="header-logout-btn" (click)="onLogout()">Logout</button>
+      }
+    </div>
   </div>
 </header>

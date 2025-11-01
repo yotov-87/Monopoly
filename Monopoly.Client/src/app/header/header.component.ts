@@ -7,13 +7,18 @@ import { AuthService } from '../services/auth.service';
   selector: 'app-header',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './header.component.html'
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
   constructor(private router: Router, private authService: AuthService) {}
 
   get isAuthenticated(): boolean {
     return this.authService.isAuthenticated();
+  }
+
+  get username(): string | null {
+    return this.authService.getUsername();
   }
 
   onLogin(): void {
@@ -27,5 +32,9 @@ export class HeaderComponent {
   onLogout(): void {
     this.authService.logout();
     this.router.navigate(['/']);
+  }
+
+  onCreateGame(): void {
+    this.router.navigate(['/create-game']);
   }
 }
