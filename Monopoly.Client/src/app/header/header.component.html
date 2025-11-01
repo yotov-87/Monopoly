@@ -1,0 +1,11 @@
+<header>
+  <h1>Monopoly</h1>
+  <div>
+    @if (!isAuthenticated) {
+      <button (click)="onLogin()">Login</button>
+      <button (click)="onRegister()">Register</button>
+    } @else {
+      <button (click)="onLogout()">Logout</button>
+    }
+  </div>
+</header>
