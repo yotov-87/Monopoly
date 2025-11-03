@@ -40,36 +40,36 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 15px 20px;
+  padding: 10px 15px;
   background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  gap: 20px;
+  gap: 15px;
   flex-wrap: wrap;
 }
 
 .game-header-info {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
 }
 
 .game-header h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 18px;
   color: #333;
   font-weight: 700;
 }
 
 .game-player-count {
-  font-size: 13px;
+  font-size: 11px;
   color: #666;
   font-weight: 500;
 }
 
 .header-players {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
   flex: 1;
   justify-content: center;
@@ -77,8 +77,8 @@
 }
 
 .player-card-mini {
-  min-width: 160px;
-  max-width: 200px;
+  min-width: 90px;
+  max-width: 110px;
 }
 
 .header-actions {
@@ -264,107 +264,67 @@
 }
 
 .player-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+  background: white;
   border: 3px solid #ddd;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 10px 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s;
   cursor: pointer;
   position: relative;
 }
 
-.player-card.current-turn {
-  border-color: #4caf50;
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-}
-
 .player-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .player-card.expanded {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   z-index: 20;
 }
 
 .player-card-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .player-card-compact {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   position: relative;
-}
-
-.player-card-compact::after {
-  content: '▼';
-  font-size: 10px;
-  color: #999;
-  margin-left: auto;
-  transition: transform 0.3s;
-}
-
-.player-card.expanded .player-card-compact::after {
-  transform: rotate(180deg);
-}
-
-@media (hover: hover) {
-  .player-card-compact::after {
-    display: none;
-  }
 }
 
 .player-card-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 4px 8px;
+  border-radius: 6px;
   color: white;
   font-weight: bold;
-  font-size: 16px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  font-size: 12px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  min-width: 40px;
-  min-height: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  min-width: 30px;
+  min-height: 24px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   flex-shrink: 0;
 }
 
-.player-card-name {
-  flex: 1;
-  font-size: 15px;
-  font-weight: 600;
-  color: #333;
-}
-
 .player-card-money {
-  font-size: 16px;
+  font-size: 13px;
   font-weight: bold;
-  color: #4caf50;
-  margin-left: auto;
-}
-
-.current-turn-badge {
-  background-color: #4caf50;
-  color: white;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: uppercase;
-  margin-left: 5px;
+  color: #000;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .player-card-details {
@@ -844,24 +804,13 @@
   letter-spacing: 4px;
 }
 
-.game-stats {
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.game-stats p {
-  margin: 6px 0;
-  font-size: 14px;
-  color: #333;
-}
-
 .board-cell {
   background: white;
   border: 2px solid #333;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 8px;
   position: relative;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.3s;
@@ -929,7 +878,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 4px;
+  width: 100%;
 }
 
 .cell-position {
@@ -1022,10 +973,6 @@
   .center-content h3 {
     font-size: clamp(20px, 3vw, 28px);
   }
-
-  .game-stats p {
-    font-size: 12px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -1098,10 +1045,6 @@
     padding: 5px 8px;
   }
 
-  .player-card-name {
-    font-size: 13px;
-  }
-
   .player-card-money {
     font-size: 14px;
   }
@@ -1123,15 +1066,6 @@
   .center-content h3 {
     font-size: clamp(16px, 4vw, 24px);
     letter-spacing: 2px;
-  }
-
-  .game-stats {
-    padding: 8px;
-  }
-
-  .game-stats p {
-    font-size: 11px;
-    margin: 4px 0;
   }
 
   .board-cell {
@@ -1245,17 +1179,8 @@
     font-size: 13px;
   }
 
-  .player-card-name {
-    font-size: 12px;
-  }
-
   .player-card-money {
     font-size: 13px;
-  }
-
-  .current-turn-badge {
-    font-size: 9px;
-    padding: 2px 4px;
   }
 
   .monopoly-board {

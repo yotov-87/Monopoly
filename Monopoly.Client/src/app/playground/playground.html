@@ -20,17 +20,12 @@
         <div *ngFor="let player of getAllPlayers(); let idx = index" 
              class="player-card player-card-mini"
              [class.current-turn]="game?.currentTurnUsername === player.username"
-             [class.expanded]="expandedPlayerIndex === idx"
+             [style.border-color]="game?.currentTurnUsername === player.username ? player.color : '#ddd'"
+             [style.box-shadow]="game?.currentTurnUsername === player.username ? '0 0 12px ' + player.color : '0 2px 6px rgba(0, 0, 0, 0.1)'"
              (click)="togglePlayerCard(idx)">
           <div class="player-card-compact">
             <div class="player-card-badge" [style.background-color]="player.color">
               {{ player.username.substring(0, 2) }}
-            </div>
-            <div class="player-card-name">
-              {{ player.username }}
-              <span *ngIf="game?.currentTurnUsername === player.username" class="current-turn-badge">
-                Turn
-              </span>
             </div>
             <div class="player-card-money">
               ${{ player.money }}
@@ -186,11 +181,6 @@
                 >
                   End Turn
                 </button>
-              </div>
-              
-              <div class="game-stats">
-                <p><strong>Turn:</strong> {{ game?.currentTurnUsername }}</p>
-                <p *ngIf="dice1 && dice2"><strong>Last Roll:</strong> {{ dice1 }} + {{ dice2 }} = {{ diceTotal }}</p>
               </div>
             </div>
           </div>
