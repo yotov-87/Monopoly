@@ -31,6 +31,7 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   hasMovedPlayer: boolean = false;
   playerReadyStates: Map<string, boolean> = new Map();
   isReady: boolean = false;
+  expandedPlayerIndex: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -353,6 +354,14 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
 
   isPlayerReady(username: string): boolean {
     return this.playerReadyStates.get(username) || false;
+  }
+
+  togglePlayerCard(index: number): void {
+    if (this.expandedPlayerIndex === index) {
+      this.expandedPlayerIndex = null;
+    } else {
+      this.expandedPlayerIndex = index;
+    }
   }
 
   updateBoardCellsWithPlayerPosition(username: string, fromPosition: number, toPosition: number): void {

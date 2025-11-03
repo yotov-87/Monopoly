@@ -10,112 +10,88 @@
 
   <div *ngIf="!loading && !error && game" class="game-content">
     <div class="game-header">
-      <h1 id="playground-game-name">{{ game.name }}</h1>
-      <button (click)="onLeaveGame()" id="playground-leave-btn" class="leave-btn">Leave Game</button>
-    </div>
+      <div class="game-header-info">
+        <h1 id="playground-game-name">{{ game.name }}</h1>
+        <span class="game-player-count">{{ game.currentPlayerCount }}/{{ game.playerCount }} Players</span>
+      </div>
 
-    <div class="game-info">
-      <p><strong>Status:</strong> <span id="playground-game-status">{{ game.status }}</span></p>
-      <p><strong>Players:</strong> <span id="playground-player-count">{{ game.currentPlayerCount }} / {{ game.playerCount }}</span></p>
-    </div>
-
-    <div class="players-list">
-      <h2>Players</h2>
-      <ul>
-        <li *ngFor="let player of game.players; let i = index" id="playground-player-{{ i + 1 }}">
-          <span class="player-order">{{ i + 1 }}.</span>
-          <span class="player-name">{{ player }}</span>
-        </li>
-      </ul>
-
-      <!-- Add Player Form (only for creator) -->
-      <div *ngIf="isCreator && game.currentPlayerCount < game.playerCount" class="add-player-form">
-        <h3>Add Player</h3>
-        <div class="form-group">
-          <input 
-            type="text" 
-            [(ngModel)]="newPlayerUsername" 
-            placeholder="Enter username"
-            id="playground-add-player-username"
-            [disabled]="addingPlayer"
-          />
-          <button 
-            (click)="onAddPlayer()" 
-            id="playground-add-player-btn"
-            [disabled]="addingPlayer || !newPlayerUsername.trim()"
-          >
-            {{ addingPlayer ? 'Adding...' : 'Add Player' }}
-          </button>
+      <!-- Players Cards in Header -->
+      <div class="header-players">
+        <div *ngFor="let player of getAllPlayers(); let idx = index" 
+             class="player-card player-card-mini"
+             [class.current-turn]="game?.currentTurnUsername === player.username"
+             [class.expanded]="expandedPlayerIndex === idx"
+             (click)="togglePlayerCard(idx)">
+          <div class="player-card-compact">
+            <div class="player-card-badge" [style.background-color]="player.color">
+              {{ player.username.substring(0, 2) }}
+            </div>
+            <div class="player-card-name">
+              {{ player.username }}
+              <span *ngIf="game?.currentTurnUsername === player.username" class="current-turn-badge">
+                Turn
+              </span>
+            </div>
+            <div class="player-card-money">
+              ${{ player.money }}
+            </div>
+          </div>
+          <div class="player-card-details">
+            <div class="player-detail-row">
+              <span class="player-detail-label">Position:</span>
+              <span class="player-detail-value player-position">{{ getBoardCell(player.currentPosition)?.name || 'Cell ' + player.currentPosition }}</span>
+            </div>
+            <div class="player-detail-row" *ngIf="game?.status === 'Waiting'">
+              <span class="player-detail-label">Status:</span>
+              <span class="player-detail-value" [class.ready-status]="isPlayerReady(player.username)">
+                {{ isPlayerReady(player.username) ? '✓ Ready' : 'Not Ready' }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div *ngIf="game.currentPlayerCount >= game.playerCount" class="game-full">
-        <p>✓ Game is full</p>
+      <div class="header-actions">
+        <span class="game-status" [class.status-waiting]="game.status === 'Waiting'" 
+              [class.status-active]="game.status === 'Active'">
+          {{ game.status }}
+        </span>
+        <button (click)="onLeaveGame()" id="playground-leave-btn" class="leave-btn">Leave</button>
       </div>
     </div>
 
-    <div class="board-container">
-      <h2>Game Board (40 Cells)</h2>
+    <!-- Add Player Form (only for creator) -->
+    <div *ngIf="isCreator && game.currentPlayerCount < game.playerCount" class="add-player-form">
+      <input 
+        type="text" 
+        [(ngModel)]="newPlayerUsername" 
+        placeholder="Enter username to add player"
+        id="playground-add-player-username"
+        [disabled]="addingPlayer"
+      />
+      <button 
+        (click)="onAddPlayer()" 
+        id="playground-add-player-btn"
+        [disabled]="addingPlayer || !newPlayerUsername.trim()"
+      >
+        {{ addingPlayer ? 'Adding...' : 'Add Player' }}
+      </button>
+    </div>
 
-      <!-- Current Turn Info -->
-      <div class="turn-info" *ngIf="game?.currentTurnUsername">
-        <p>
-          <strong>Current Turn:</strong> 
-          <span class="turn-player" [class.my-turn]="isMyTurn()">
-            {{ game.currentTurnUsername }}
-            <span *ngIf="isMyTurn()" class="turn-indicator">← Your Turn!</span>
-          </span>
-        </p>
+    <div class="board-container">
+      <!-- Ready Button Section (only show in Waiting status) -->
+      <div class="ready-section" *ngIf="game?.status === 'Waiting'">
+        <button 
+          (click)="onToggleReady()" 
+          class="ready-btn"
+          [class.ready-active]="isReady">
+          {{ isReady ? '✓ Ready!' : 'Click to Ready' }}
+        </button>
+        <p class="ready-hint">All players must be ready to start the game</p>
       </div>
 
       <!-- Monopoly Board -->
       <div class="board-with-players">
-        <!-- Players Sidebar -->
-        <div class="players-sidebar">
-          <div *ngFor="let player of getAllPlayers()" 
-               class="player-card"
-               [class.current-turn]="game?.currentTurnUsername === player.username">
-            <div class="player-card-header">
-              <div class="player-card-badge" [style.background-color]="player.color">
-                {{ player.username.substring(0, 2) }}
-              </div>
-              <div class="player-card-name">
-                {{ player.username }}
-                <div *ngIf="game?.currentTurnUsername === player.username" class="current-turn-badge">
-                  Current Turn
-                </div>
-              </div>
-            </div>
-            <div class="player-card-details">
-              <div class="player-detail-row">
-                <span class="player-detail-label">Money:</span>
-                <span class="player-detail-value player-money">${{ player.money }}</span>
-              </div>
-              <div class="player-detail-row">
-                <span class="player-detail-label">Position:</span>
-                <span class="player-detail-value player-position">{{ getBoardCell(player.currentPosition)?.name || 'Cell ' + player.currentPosition }}</span>
-              </div>
-              <div class="player-detail-row" *ngIf="game?.status === 'Waiting'">
-                <span class="player-detail-label">Status:</span>
-                <span class="player-detail-value" [class.ready-status]="isPlayerReady(player.username)">
-                  {{ isPlayerReady(player.username) ? '✓ Ready' : 'Not Ready' }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Ready Button Section (only show in Waiting status) -->
-        <div class="ready-section" *ngIf="game?.status === 'Waiting'">
-          <button 
-            (click)="onToggleReady()" 
-            class="ready-btn"
-            [class.ready-active]="isReady">
-            {{ isReady ? '✓ Ready!' : 'Click to Ready' }}
-          </button>
-          <p class="ready-hint">All players must be ready to start the game</p>
-        </div>
-
         <!-- Game Board -->
         <div class="monopoly-board" *ngIf="boardCells.length > 0">
         <!-- Bottom row (positions 0-10) -->
@@ -199,7 +175,6 @@
                 </button>
               </div>
               
-              <h3>MONOPOLY</h3>
               <div class="game-stats">
                 <p><strong>Turn:</strong> {{ game?.currentTurnUsername }}</p>
                 <p *ngIf="dice1 && dice2"><strong>Last Roll:</strong> {{ dice1 }} + {{ dice2 }} = {{ diceTotal }}</p>
