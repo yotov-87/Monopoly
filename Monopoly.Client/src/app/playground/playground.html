@@ -47,8 +47,8 @@
       </div>
 
       <div class="header-actions">
-        <span class="game-status" [class.status-waiting]="game.status === 'Waiting'" 
-              [class.status-active]="game.status === 'Active'">
+        <!-- Status badge only shown when Waiting -->
+        <span *ngIf="game.status === 'Waiting'" class="game-status status-waiting">
           {{ game.status }}
         </span>
         
@@ -97,7 +97,7 @@
       </button>
     </div>
 
-    <div class="board-container">
+    <div class="board-container" [class.game-inactive]="game?.status === 'Waiting'">
       <!-- Monopoly Board -->
       <div class="board-with-players">
         <!-- Game Board -->
