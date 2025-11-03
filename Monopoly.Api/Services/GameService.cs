@@ -495,7 +495,19 @@ public class GameService : IGameService
         var fromPosition = playerState.Position;
 
         // Move player (wraparound at position 40)
-        playerState.Position = (playerState.Position + steps) % 40;
+        var newPosition = (playerState.Position + steps) % 40;
+        
+        // Check if player passed GO (position 0)
+        // If old position + steps >= 40, they passed GO
+        bool passedGo = (playerState.Position + steps) >= 40;
+        
+        if (passedGo)
+        {
+            // Give $200 for passing GO
+            playerState.Money += 200;
+        }
+        
+        playerState.Position = newPosition;
         playerState.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();

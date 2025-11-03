@@ -68,42 +68,45 @@
         </p>
       </div>
 
-      <!-- Dice Section -->
-      <div class="dice-section">
-        <button 
-          (click)="onRollDice()" 
-          id="playground-roll-dice-btn" 
-          class="roll-dice-btn"
-          [disabled]="!canRollDice()"
-        >
-          🎲 Roll Dice
-        </button>
-        <div *ngIf="dice1 !== null && dice2 !== null" class="dice-result">
-          <div class="dice-display">
-            <span class="dice" id="playground-dice-1">{{ dice1 }}</span>
-            <span class="dice" id="playground-dice-2">{{ dice2 }}</span>
-          </div>
-          <div class="dice-total" id="playground-dice-total">
-            Total: <strong>{{ diceTotal }}</strong>
+      <!-- Monopoly Board -->
+      <div class="board-with-players">
+        <!-- Players Sidebar -->
+        <div class="players-sidebar">
+          <div *ngFor="let player of getAllPlayers()" 
+               class="player-card"
+               [class.current-turn]="game?.currentTurnUsername === player.username">
+            <div class="player-card-header">
+              <div class="player-card-badge" [style.background-color]="player.color">
+                {{ player.username.substring(0, 2) }}
+              </div>
+              <div class="player-card-name">
+                {{ player.username }}
+                <div *ngIf="game?.currentTurnUsername === player.username" class="current-turn-badge">
+                  Current Turn
+                </div>
+              </div>
+            </div>
+            <div class="player-card-details">
+              <div class="player-detail-row">
+                <span class="player-detail-label">Money:</span>
+                <span class="player-detail-value player-money">${{ player.money }}</span>
+              </div>
+              <div class="player-detail-row">
+                <span class="player-detail-label">Position:</span>
+                <span class="player-detail-value player-position">{{ getBoardCell(player.currentPosition)?.name || 'Cell ' + player.currentPosition }}</span>
+              </div>
+            </div>
           </div>
         </div>
-        <button 
-          (click)="onEndTurn()" 
-          id="playground-end-turn-btn" 
-          class="end-turn-btn"
-          [disabled]="!canEndTurn()"
-        >
-          End Turn
-        </button>
-      </div>
 
-      <!-- Monopoly Board -->
-      <div class="monopoly-board" *ngIf="boardCells.length > 0">
+        <!-- Game Board -->
+        <div class="monopoly-board" *ngIf="boardCells.length > 0">
         <!-- Bottom row (positions 0-10) -->
         <div class="board-row bottom-row">
           <div *ngFor="let pos of [0,1,2,3,4,5,6,7,8,9,10]" 
                class="board-cell" 
                [class.corner]="pos === 0 || pos === 10"
+               [class.has-current-player]="cellHasCurrentPlayer(pos)"
                [attr.data-position]="pos">
             <div class="cell-info">
               <div class="cell-position">{{ pos }}</div>
@@ -122,10 +125,11 @@
 
         <!-- Middle section (left side, center, right side) -->
         <div class="board-middle">
-          <!-- Left column (positions 39-31) -->
+          <!-- Left column (positions 39-31, from top to bottom) -->
           <div class="board-column left-column">
             <div *ngFor="let pos of [39,38,37,36,35,34,33,32,31]" 
                  class="board-cell"
+                 [class.has-current-player]="cellHasCurrentPlayer(pos)"
                  [attr.data-position]="pos">
               <div class="cell-info">
                 <div class="cell-position">{{ pos }}</div>
@@ -145,6 +149,35 @@
           <!-- Center area (game info) -->
           <div class="board-center">
             <div class="center-content">
+              <!-- Dice Section -->
+              <div class="dice-section-center">
+                <button 
+                  (click)="onRollDice()" 
+                  id="playground-roll-dice-btn" 
+                  class="roll-dice-btn"
+                  [disabled]="!canRollDice()"
+                >
+                  🎲 Roll Dice
+                </button>
+                <div *ngIf="dice1 !== null && dice2 !== null" class="dice-result">
+                  <div class="dice-display">
+                    <span class="dice" id="playground-dice-1">{{ dice1 }}</span>
+                    <span class="dice" id="playground-dice-2">{{ dice2 }}</span>
+                  </div>
+                  <div class="dice-total" id="playground-dice-total">
+                    Total: <strong>{{ diceTotal }}</strong>
+                  </div>
+                </div>
+                <button 
+                  (click)="onEndTurn()" 
+                  id="playground-end-turn-btn" 
+                  class="end-turn-btn"
+                  [disabled]="!canEndTurn()"
+                >
+                  End Turn
+                </button>
+              </div>
+              
               <h3>MONOPOLY</h3>
               <div class="game-stats">
                 <p><strong>Turn:</strong> {{ game?.currentTurnUsername }}</p>
@@ -157,6 +190,7 @@
           <div class="board-column right-column">
             <div *ngFor="let pos of [11,12,13,14,15,16,17,18,19]" 
                  class="board-cell"
+                 [class.has-current-player]="cellHasCurrentPlayer(pos)"
                  [attr.data-position]="pos">
               <div class="cell-info">
                 <div class="cell-position">{{ pos }}</div>
@@ -174,11 +208,12 @@
           </div>
         </div>
 
-        <!-- Top row (positions 20-30) -->
+        <!-- Top row (positions 30-20, from right to left) -->
         <div class="board-row top-row">
-          <div *ngFor="let pos of [20,21,22,23,24,25,26,27,28,29,30]" 
+          <div *ngFor="let pos of [30,29,28,27,26,25,24,23,22,21,20]" 
                class="board-cell"
                [class.corner]="pos === 20 || pos === 30"
+               [class.has-current-player]="cellHasCurrentPlayer(pos)"
                [attr.data-position]="pos">
             <div class="cell-info">
               <div class="cell-position">{{ pos }}</div>
@@ -194,6 +229,7 @@
             </div>
           </div>
         </div>
+      </div>
       </div>
 
       <div *ngIf="boardCells.length === 0" class="no-board">

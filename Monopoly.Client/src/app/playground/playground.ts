@@ -204,12 +204,28 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
 
       // Move player after rolling dice
       if (this.diceTotal !== null) {
+        // Get current position before move
+        const currentPlayer = this.boardCells
+          .flatMap(cell => cell.playersHere)
+          .find(p => p.username === this.currentUsername);
+        const oldPosition = currentPlayer?.position ?? 0;
+        
         this.gameService.movePlayer(this.gameId, this.diceTotal).subscribe({
           next: (playgroundInfo) => {
             // Update game info AND board cells from API response
             this.game = playgroundInfo.game;
             this.boardCells = playgroundInfo.boardCells;
             this.hasMovedPlayer = true;
+            
+            // Check if player passed GO (position 0)
+            const newPlayer = this.boardCells
+              .flatMap(cell => cell.playersHere)
+              .find(p => p.username === this.currentUsername);
+            const newPosition = newPlayer?.position ?? 0;
+            
+            if (oldPosition + this.diceTotal! >= 40) {
+              alert(`🎉 You passed GO! Collect $200`);
+            }
             
             // Update player positions in SignalR service
             const playerPositions = this.boardCells
@@ -299,5 +315,32 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
 
   getBoardCell(position: number): BoardCell | undefined {
     return this.boardCells.find(cell => cell.position === position);
+  }
+
+  getAllPlayers(): Array<{username: string, color: string, money: number, currentPosition: number}> {
+    const uniquePlayers = new Map<string, {username: string, color: string, money: number, currentPosition: number}>();
+    
+    this.boardCells.forEach(cell => {
+      cell.playersHere.forEach(player => {
+        if (!uniquePlayers.has(player.username)) {
+          uniquePlayers.set(player.username, {
+            username: player.username,
+            color: player.color,
+            money: player.money,
+            currentPosition: player.position
+          });
+        }
+      });
+    });
+    
+    return Array.from(uniquePlayers.values());
+  }
+
+  cellHasCurrentPlayer(position: number): boolean {
+    const cell = this.getBoardCell(position);
+    if (!cell || !this.game?.currentTurnUsername) {
+      return false;
+    }
+    return cell.playersHere.some(p => p.username === this.game?.currentTurnUsername);
   }
 }
