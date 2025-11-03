@@ -501,10 +501,13 @@ public class GameService : IGameService
         // If old position + steps >= 40, they passed GO
         bool passedGo = (playerState.Position + steps) >= 40;
         
+        Console.WriteLine($"Player {playerState.User.Username} moving: Position {playerState.Position} + {steps} steps = {playerState.Position + steps}. New position: {newPosition}. Passed GO: {passedGo}");
+        
         if (passedGo)
         {
             // Give $200 for passing GO
             playerState.Money += 200;
+            Console.WriteLine($"Player {playerState.User.Username} passed GO! Old money: {playerState.Money - 200}, New money: {playerState.Money}");
         }
         
         playerState.Position = newPosition;

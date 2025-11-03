@@ -107,6 +107,8 @@
                class="board-cell" 
                [class.corner]="pos === 0 || pos === 10"
                [class.has-current-player]="cellHasCurrentPlayer(pos)"
+               [class.has-players]="getCellPlayerColors(pos).length > 0"
+               [ngStyle]="getCellBorderStyle(pos)"
                [attr.data-position]="pos">
             <div class="cell-info">
               <div class="cell-position">{{ pos }}</div>
@@ -130,6 +132,8 @@
             <div *ngFor="let pos of [39,38,37,36,35,34,33,32,31]" 
                  class="board-cell"
                  [class.has-current-player]="cellHasCurrentPlayer(pos)"
+                 [class.has-players]="getCellPlayerColors(pos).length > 0"
+                 [ngStyle]="getCellBorderStyle(pos)"
                  [attr.data-position]="pos">
               <div class="cell-info">
                 <div class="cell-position">{{ pos }}</div>
@@ -191,6 +195,8 @@
             <div *ngFor="let pos of [11,12,13,14,15,16,17,18,19]" 
                  class="board-cell"
                  [class.has-current-player]="cellHasCurrentPlayer(pos)"
+                 [class.has-players]="getCellPlayerColors(pos).length > 0"
+                 [ngStyle]="getCellBorderStyle(pos)"
                  [attr.data-position]="pos">
               <div class="cell-info">
                 <div class="cell-position">{{ pos }}</div>
@@ -214,6 +220,8 @@
                class="board-cell"
                [class.corner]="pos === 20 || pos === 30"
                [class.has-current-player]="cellHasCurrentPlayer(pos)"
+               [class.has-players]="getCellPlayerColors(pos).length > 0"
+               [ngStyle]="getCellBorderStyle(pos)"
                [attr.data-position]="pos">
             <div class="cell-info">
               <div class="cell-position">{{ pos }}</div>

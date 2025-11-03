@@ -86,11 +86,19 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.signalRService.playerMoved$.subscribe(event => {
         if (event.gameId === this.gameId) {
-          // Only update board for OTHER players, not the current user
-          // Current user's position is already updated from the movePlayer API response
-          if (event.username !== this.currentUsername) {
-            console.log(`Other player ${event.username} moved from ${event.fromPosition} to ${event.toPosition}`);
-            this.updateBoardCellsWithPlayerPosition(event.username, event.fromPosition, event.toPosition);
+          console.log(`Player ${event.username} moved from ${event.fromPosition} to ${event.toPosition}`);
+          
+          // Reload playground data to get updated money values from server
+          if (this.gameId !== null) {
+            this.gameService.getPlaygroundInfo(this.gameId).subscribe({
+              next: (playgroundInfo) => {
+                this.boardCells = playgroundInfo.boardCells;
+                // Don't update game object to avoid resetting UI state
+              },
+              error: (error) => {
+                console.error('Failed to refresh playground data', error);
+              }
+            });
           }
         }
       })
@@ -222,9 +230,17 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
               .flatMap(cell => cell.playersHere)
               .find(p => p.username === this.currentUsername);
             const newPosition = newPlayer?.position ?? 0;
+            const oldMoney = currentPlayer?.money ?? 1500;
+            const newMoney = newPlayer?.money ?? 1500;
+            
+            console.log(`Movement: oldPos=${oldPosition}, diceTotal=${this.diceTotal}, sum=${oldPosition + this.diceTotal!}, newPos=${newPosition}`);
+            console.log(`Money: old=${oldMoney}, new=${newMoney}, diff=${newMoney - oldMoney}`);
             
             if (oldPosition + this.diceTotal! >= 40) {
+              console.log(`✅ Passed GO! (${oldPosition} + ${this.diceTotal} >= 40)`);
               alert(`🎉 You passed GO! Collect $200`);
+            } else {
+              console.log(`❌ Did not pass GO (${oldPosition} + ${this.diceTotal} < 40)`);
             }
             
             // Update player positions in SignalR service
@@ -277,7 +293,10 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   updateBoardCellsWithPlayerPosition(username: string, fromPosition: number, toPosition: number): void {
     // Remove player from old position
     const fromCell = this.boardCells.find(cell => cell.position === fromPosition);
+    let savedPlayerInfo = null;
+    
     if (fromCell) {
+      savedPlayerInfo = fromCell.playersHere.find(p => p.username === username);
       fromCell.playersHere = fromCell.playersHere.filter(p => p.username !== username);
     }
 
@@ -286,17 +305,42 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
     if (toCell) {
       const existingPlayer = toCell.playersHere.find(p => p.username === username);
       if (!existingPlayer) {
-        // Find player info from old position or create new
-        const playerInfo = fromCell?.playersHere.find(p => p.username === username) || {
+        // Use saved player info to preserve money
+        const playerInfo = savedPlayerInfo || {
           username: username,
           position: toPosition,
-          money: 1500, // Default value, will be updated later if needed
+          money: 1500, // Default value
           color: this.getPlayerColor(username)
         };
+        
+        // Check if player passed GO (when moving from higher position to lower, or distance >= 40)
+        const didPassGo = fromPosition > toPosition || 
+                         (toPosition - fromPosition) < 0 ||
+                         (fromPosition + (toPosition >= fromPosition ? toPosition - fromPosition : 40 - fromPosition + toPosition)) >= 40;
+        
+        if (didPassGo && savedPlayerInfo) {
+          playerInfo.money += 200;
+          console.log(`${username} passed GO! +$200, new balance: $${playerInfo.money}`);
+        }
+        
         playerInfo.position = toPosition;
         toCell.playersHere.push(playerInfo);
+      } else {
+        // Update existing player position
+        existingPlayer.position = toPosition;
       }
     }
+  }
+
+  updatePlayerMoney(username: string, newMoney: number): void {
+    // Update money for player in all cells
+    this.boardCells.forEach(cell => {
+      cell.playersHere.forEach(player => {
+        if (player.username === username) {
+          player.money = newMoney;
+        }
+      });
+    });
   }
 
   getPlayerColor(username: string): string {
@@ -342,5 +386,36 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
       return false;
     }
     return cell.playersHere.some(p => p.username === this.game?.currentTurnUsername);
+  }
+
+  getCellPlayerColors(position: number): string[] {
+    const cell = this.getBoardCell(position);
+    if (!cell || cell.playersHere.length === 0) {
+      return [];
+    }
+    return cell.playersHere.map(p => p.color);
+  }
+
+  getCellBorderStyle(position: number): any {
+    const colors = this.getCellPlayerColors(position);
+    if (colors.length === 0) {
+      return {};
+    }
+    
+    if (colors.length === 1) {
+      return {
+        'border-color': colors[0],
+        'border-width': '4px',
+        'box-shadow': `0 0 15px ${colors[0]}80`
+      };
+    }
+    
+    // Multiple players - create gradient border effect
+    const gradient = `linear-gradient(135deg, ${colors.join(', ')})`;
+    return {
+      'border-image': `${gradient} 1`,
+      'border-width': '4px',
+      'box-shadow': `0 0 15px ${colors[0]}60`
+    };
   }
 }

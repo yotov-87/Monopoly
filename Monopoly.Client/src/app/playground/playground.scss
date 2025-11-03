@@ -694,19 +694,42 @@
   z-index: 10;
 }
 
+.board-cell.has-players {
+  animation: subtle-pulse 3s infinite;
+  z-index: 5;
+}
+
+@keyframes subtle-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.01);
+  }
+}
+
 .board-cell.has-current-player {
-  border-color: #4caf50;
-  border-width: 3px;
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
-  animation: pulse-border 2s infinite;
+  border-color: #2e7d32;
+  border-width: 4px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+  box-shadow: 0 0 25px rgba(46, 125, 50, 0.9), 
+              inset 0 0 15px rgba(76, 175, 80, 0.3);
+  animation: pulse-border 1.5s infinite;
+  z-index: 15;
+  transform: scale(1.02);
 }
 
 @keyframes pulse-border {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
+    box-shadow: 0 0 25px rgba(46, 125, 50, 0.9), 
+                inset 0 0 15px rgba(76, 175, 80, 0.3);
+    border-color: #2e7d32;
   }
   50% {
-    box-shadow: 0 0 25px rgba(76, 175, 80, 0.9);
+    box-shadow: 0 0 40px rgba(76, 175, 80, 1), 
+                0 0 60px rgba(76, 175, 80, 0.7),
+                inset 0 0 20px rgba(76, 175, 80, 0.5);
+    border-color: #4caf50;
   }
 }
 
