@@ -9,5 +9,6 @@ public class BoardCellDto
     public CellType CellType { get; set; }
     public string CellTypeName { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    public string? ColorGroup { get; set; }
     public List<PlayerPositionDto> PlayersHere { get; set; } = new List<PlayerPositionDto>();
 }

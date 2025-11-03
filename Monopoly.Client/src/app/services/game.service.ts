@@ -30,6 +30,7 @@ export interface BoardCell {
   cellType: number;
   cellTypeName: string;
   name: string;
+  colorGroup?: string;
   playersHere: PlayerPosition[];
 }
 

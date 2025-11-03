@@ -376,6 +376,7 @@ public class GameService : IGameService
                 CellType = bc.CellType,
                 CellTypeName = bc.CellType.ToString(),
                 Name = bc.Name,
+                ColorGroup = bc.ColorGroup,
                 PlayersHere = game.PlayerStates
                     .Where(ps => ps.Position == bc.Position)
                     .Select(ps => new PlayerPositionDto

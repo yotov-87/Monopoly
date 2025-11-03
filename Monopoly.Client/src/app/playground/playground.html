@@ -112,7 +112,9 @@
                [ngStyle]="getCellBorderStyle(pos)"
                [attr.data-position]="pos">
             <div class="cell-info">
-              <div class="cell-position">{{ pos }}</div>
+              <div class="cell-position" 
+                   [ngClass]="getBoardCell(pos)?.colorGroup"
+                   [class.has-color]="getBoardCell(pos)?.colorGroup">{{ pos }}</div>
               <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
             </div>
             <div class="cell-players">
@@ -137,7 +139,9 @@
                  [ngStyle]="getCellBorderStyle(pos)"
                  [attr.data-position]="pos">
               <div class="cell-info">
-                <div class="cell-position">{{ pos }}</div>
+                <div class="cell-position" 
+                     [ngClass]="getBoardCell(pos)?.colorGroup"
+                     [class.has-color]="getBoardCell(pos)?.colorGroup">{{ pos }}</div>
                 <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
               </div>
               <div class="cell-players">
@@ -194,7 +198,9 @@
                  [ngStyle]="getCellBorderStyle(pos)"
                  [attr.data-position]="pos">
               <div class="cell-info">
-                <div class="cell-position">{{ pos }}</div>
+                <div class="cell-position" 
+                     [ngClass]="getBoardCell(pos)?.colorGroup"
+                     [class.has-color]="getBoardCell(pos)?.colorGroup">{{ pos }}</div>
                 <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
               </div>
               <div class="cell-players">
@@ -219,7 +225,9 @@
                [ngStyle]="getCellBorderStyle(pos)"
                [attr.data-position]="pos">
             <div class="cell-info">
-              <div class="cell-position">{{ pos }}</div>
+              <div class="cell-position" 
+                   [ngClass]="getBoardCell(pos)?.colorGroup"
+                   [class.has-color]="getBoardCell(pos)?.colorGroup">{{ pos }}</div>
               <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
             </div>
             <div class="cell-players">

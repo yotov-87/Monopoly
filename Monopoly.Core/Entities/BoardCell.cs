@@ -10,4 +10,5 @@ public class BoardCell
     public int Position { get; set; } // Position on the board (0-39 for standard Monopoly)
     public CellType CellType { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? ColorGroup { get; set; } // Color group for properties (Brown, LightBlue, Pink, etc.)
 }
