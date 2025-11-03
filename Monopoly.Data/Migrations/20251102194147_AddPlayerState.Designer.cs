@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Monopoly.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Monopoly.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251102194147_AddPlayerState")]
+    partial class AddPlayerState
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,9 +69,6 @@ namespace Monopoly.Data.Migrations
                     b.Property<int>("CreatedByUserId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("CurrentTurnUserId")
-                        .HasColumnType("integer");
-
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -90,8 +90,6 @@ namespace Monopoly.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("CurrentTurnUserId");
 
                     b.ToTable("Games");
                 });
@@ -233,14 +231,7 @@ namespace Monopoly.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Monopoly.Core.Entities.User", "CurrentTurnUser")
-                        .WithMany()
-                        .HasForeignKey("CurrentTurnUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("CreatedBy");
-
-                    b.Navigation("CurrentTurnUser");
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.GameBoard", b =>
@@ -276,13 +267,13 @@ namespace Monopoly.Data.Migrations
             modelBuilder.Entity("Monopoly.Core.Entities.PlayerState", b =>
                 {
                     b.HasOne("Monopoly.Core.Entities.Game", "Game")
-                        .WithMany("PlayerStates")
+                        .WithMany()
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Monopoly.Core.Entities.User", "User")
-                        .WithMany("PlayerStates")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -297,8 +288,6 @@ namespace Monopoly.Data.Migrations
                     b.Navigation("GameBoard");
 
                     b.Navigation("GamePlayers");
-
-                    b.Navigation("PlayerStates");
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.GameBoard", b =>
@@ -309,8 +298,6 @@ namespace Monopoly.Data.Migrations
             modelBuilder.Entity("Monopoly.Core.Entities.User", b =>
                 {
                     b.Navigation("GamePlayers");
-
-                    b.Navigation("PlayerStates");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,0 +1,303 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { GameService, GameResponse, BoardCell, PlaygroundInfo } from '../services/game.service';
+import { AuthService } from '../services/auth.service';
+import { SignalRService } from '../services/signalr.service';
+import { Subscription } from 'rxjs';
+
+@Component({
+  selector: 'app-playground',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './playground.html',
+  styleUrl: './playground.scss',
+})
+export class PlaygroundComponent implements OnInit, OnDestroy {
+  gameId: number | null = null;
+  game: GameResponse | null = null;
+  boardCells: BoardCell[] = [];
+  loading = true;
+  error: string | null = null;
+  newPlayerUsername = '';
+  addingPlayer = false;
+  isCreator = false;
+  dice1: number | null = null;
+  dice2: number | null = null;
+  diceTotal: number | null = null;
+  currentUsername: string | null = null;
+  private subscriptions: Subscription[] = [];
+  hasRolledDice: boolean = false;
+  hasMovedPlayer: boolean = false;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private gameService: GameService,
+    private authService: AuthService,
+    private signalRService: SignalRService
+  ) {
+    this.currentUsername = this.authService.getUsername();
+  }
+
+  ngOnInit(): void {
+    // Get game ID from route parameter
+    this.route.params.subscribe(params => {
+      const id = params['id'];
+      if (id) {
+        this.gameId = +id;
+        this.loadGame();
+        this.setupSignalR();
+      } else {
+        this.error = 'No game ID provided';
+        this.loading = false;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    if (this.gameId !== null) {
+      this.signalRService.leaveGame(this.gameId);
+    }
+  }
+
+  setupSignalR(): void {
+    if (this.gameId === null) return;
+
+    this.signalRService.startConnection().then(() => {
+      if (this.gameId !== null) {
+        this.signalRService.joinGame(this.gameId);
+      }
+    });
+
+    // Subscribe to dice rolled events
+    this.subscriptions.push(
+      this.signalRService.diceRolled$.subscribe(event => {
+        if (event.gameId === this.gameId && event.username !== this.currentUsername) {
+          this.dice1 = event.dice1;
+          this.dice2 = event.dice2;
+          this.diceTotal = event.total;
+        }
+      })
+    );
+
+    // Subscribe to player moved events
+    this.subscriptions.push(
+      this.signalRService.playerMoved$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          // Only update board for OTHER players, not the current user
+          // Current user's position is already updated from the movePlayer API response
+          if (event.username !== this.currentUsername) {
+            console.log(`Other player ${event.username} moved from ${event.fromPosition} to ${event.toPosition}`);
+            this.updateBoardCellsWithPlayerPosition(event.username, event.fromPosition, event.toPosition);
+          }
+        }
+      })
+    );
+
+    // Subscribe to turn changed events
+    this.subscriptions.push(
+      this.signalRService.turnChanged$.subscribe(event => {
+        if (event.gameId === this.gameId && this.game) {
+          this.game.currentTurnUsername = event.currentTurnUsername;
+          // Reset dice and move state when turn changes
+          if (this.isMyTurn()) {
+            // New turn for current player - reset state
+            this.hasRolledDice = false;
+            this.hasMovedPlayer = false;
+          } else {
+            // Not my turn anymore - clear dice
+            this.dice1 = null;
+            this.dice2 = null;
+            this.diceTotal = null;
+            this.hasRolledDice = false;
+            this.hasMovedPlayer = false;
+          }
+        }
+      })
+    );
+  }
+
+  loadGame(): void {
+    if (this.gameId === null) return;
+
+    this.loading = true;
+    this.error = null;
+
+    this.gameService.getPlaygroundInfo(this.gameId).subscribe({
+      next: (playgroundInfo) => {
+        this.game = playgroundInfo.game;
+        this.boardCells = playgroundInfo.boardCells;
+        this.isCreator = playgroundInfo.isCreator;
+        this.loading = false;
+
+        // Initialize player positions in SignalR service
+        const playerPositions = this.boardCells
+          .flatMap(cell => cell.playersHere)
+          .map(player => ({ username: player.username, position: player.position }));
+        this.signalRService.initializePlayerPositions(playerPositions);
+      },
+      error: (error) => {
+        console.error('Failed to load playground', error);
+        if (error.status === 403) {
+          this.error = 'Access denied. You are not a player in this game.';
+        } else if (error.status === 401) {
+          this.error = 'Please login to access this game.';
+        } else {
+          this.error = 'Failed to load game. It may not exist or you may not have access.';
+        }
+        this.loading = false;
+      }
+    });
+  }
+
+  onAddPlayer(): void {
+    if (!this.newPlayerUsername.trim() || this.gameId === null) {
+      alert('Please enter a username');
+      return;
+    }
+
+    if (!this.isCreator) {
+      alert('Only the game creator can add players');
+      return;
+    }
+
+    this.addingPlayer = true;
+
+    this.gameService.addPlayer(this.gameId, this.newPlayerUsername.trim()).subscribe({
+      next: (response) => {
+        this.game = response;
+        this.newPlayerUsername = '';
+        this.addingPlayer = false;
+        alert(`Player added successfully!`);
+      },
+      error: (error) => {
+        console.error('Failed to add player', error);
+        alert('Failed to add player: ' + (error.error?.message || 'Unknown error'));
+        this.addingPlayer = false;
+      }
+    });
+  }
+
+  onLeaveGame(): void {
+    this.router.navigate(['/']);
+  }
+
+  onRollDice(): void {
+    if (this.hasRolledDice) {
+      return; // Already rolled dice this turn
+    }
+
+    this.dice1 = Math.floor(Math.random() * 6) + 1;
+    this.dice2 = Math.floor(Math.random() * 6) + 1;
+    this.diceTotal = this.dice1 + this.dice2;
+    this.hasRolledDice = true;
+
+    // Broadcast dice roll to other players
+    if (this.gameId !== null) {
+      this.gameService.rollDice(this.gameId, this.dice1, this.dice2).subscribe({
+        error: (error) => {
+          console.error('Failed to broadcast dice roll', error);
+        }
+      });
+
+      // Move player after rolling dice
+      if (this.diceTotal !== null) {
+        this.gameService.movePlayer(this.gameId, this.diceTotal).subscribe({
+          next: (playgroundInfo) => {
+            // Update game info AND board cells from API response
+            this.game = playgroundInfo.game;
+            this.boardCells = playgroundInfo.boardCells;
+            this.hasMovedPlayer = true;
+            
+            // Update player positions in SignalR service
+            const playerPositions = this.boardCells
+              .flatMap(cell => cell.playersHere)
+              .map(player => ({ username: player.username, position: player.position }));
+            this.signalRService.initializePlayerPositions(playerPositions);
+          },
+          error: (error) => {
+            console.error('Failed to move player', error);
+            alert('Failed to move player: ' + (error.error?.message || 'Unknown error'));
+            this.hasRolledDice = false; // Allow re-roll on error
+          }
+        });
+      }
+    }
+  }
+
+  onEndTurn(): void {
+    if (this.gameId === null) return;
+
+    this.gameService.endTurn(this.gameId).subscribe({
+      next: (response) => {
+        this.game = response;
+        this.dice1 = null;
+        this.dice2 = null;
+        this.diceTotal = null;
+        this.hasRolledDice = false;
+        this.hasMovedPlayer = false;
+      },
+      error: (error) => {
+        console.error('Failed to end turn', error);
+        alert('Failed to end turn: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  isMyTurn(): boolean {
+    return this.game?.currentTurnUsername === this.currentUsername;
+  }
+
+  canRollDice(): boolean {
+    return this.isMyTurn() && !this.hasRolledDice;
+  }
+
+  canEndTurn(): boolean {
+    return this.isMyTurn() && this.hasRolledDice && this.hasMovedPlayer;
+  }
+
+  updateBoardCellsWithPlayerPosition(username: string, fromPosition: number, toPosition: number): void {
+    // Remove player from old position
+    const fromCell = this.boardCells.find(cell => cell.position === fromPosition);
+    if (fromCell) {
+      fromCell.playersHere = fromCell.playersHere.filter(p => p.username !== username);
+    }
+
+    // Add player to new position
+    const toCell = this.boardCells.find(cell => cell.position === toPosition);
+    if (toCell) {
+      const existingPlayer = toCell.playersHere.find(p => p.username === username);
+      if (!existingPlayer) {
+        // Find player info from old position or create new
+        const playerInfo = fromCell?.playersHere.find(p => p.username === username) || {
+          username: username,
+          position: toPosition,
+          money: 1500, // Default value, will be updated later if needed
+          color: this.getPlayerColor(username)
+        };
+        playerInfo.position = toPosition;
+        toCell.playersHere.push(playerInfo);
+      }
+    }
+  }
+
+  getPlayerColor(username: string): string {
+    // Find player color from existing players
+    for (const cell of this.boardCells) {
+      const player = cell.playersHere.find(p => p.username === username);
+      if (player) {
+        return player.color;
+      }
+    }
+    // Default colors if not found
+    const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'];
+    const playerIndex = this.game?.players.indexOf(username) ?? 0;
+    return colors[playerIndex % colors.length];
+  }
+
+  getBoardCell(position: number): BoardCell | undefined {
+    return this.boardCells.find(cell => cell.position === position);
+  }
+}

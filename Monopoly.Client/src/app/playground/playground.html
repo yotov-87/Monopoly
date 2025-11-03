@@ -1,0 +1,204 @@
+<div class="playground-container">
+  <div *ngIf="loading" class="loading">
+    <p>Loading game...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+    <button (click)="onLeaveGame()" id="playground-back-btn">Back to Home</button>
+  </div>
+
+  <div *ngIf="!loading && !error && game" class="game-content">
+    <div class="game-header">
+      <h1 id="playground-game-name">{{ game.name }}</h1>
+      <button (click)="onLeaveGame()" id="playground-leave-btn" class="leave-btn">Leave Game</button>
+    </div>
+
+    <div class="game-info">
+      <p><strong>Status:</strong> <span id="playground-game-status">{{ game.status }}</span></p>
+      <p><strong>Players:</strong> <span id="playground-player-count">{{ game.currentPlayerCount }} / {{ game.playerCount }}</span></p>
+    </div>
+
+    <div class="players-list">
+      <h2>Players</h2>
+      <ul>
+        <li *ngFor="let player of game.players; let i = index" id="playground-player-{{ i + 1 }}">
+          <span class="player-order">{{ i + 1 }}.</span>
+          <span class="player-name">{{ player }}</span>
+        </li>
+      </ul>
+
+      <!-- Add Player Form (only for creator) -->
+      <div *ngIf="isCreator && game.currentPlayerCount < game.playerCount" class="add-player-form">
+        <h3>Add Player</h3>
+        <div class="form-group">
+          <input 
+            type="text" 
+            [(ngModel)]="newPlayerUsername" 
+            placeholder="Enter username"
+            id="playground-add-player-username"
+            [disabled]="addingPlayer"
+          />
+          <button 
+            (click)="onAddPlayer()" 
+            id="playground-add-player-btn"
+            [disabled]="addingPlayer || !newPlayerUsername.trim()"
+          >
+            {{ addingPlayer ? 'Adding...' : 'Add Player' }}
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="game.currentPlayerCount >= game.playerCount" class="game-full">
+        <p>✓ Game is full</p>
+      </div>
+    </div>
+
+    <div class="board-container">
+      <h2>Game Board (40 Cells)</h2>
+
+      <!-- Current Turn Info -->
+      <div class="turn-info" *ngIf="game?.currentTurnUsername">
+        <p>
+          <strong>Current Turn:</strong> 
+          <span class="turn-player" [class.my-turn]="isMyTurn()">
+            {{ game.currentTurnUsername }}
+            <span *ngIf="isMyTurn()" class="turn-indicator">← Your Turn!</span>
+          </span>
+        </p>
+      </div>
+
+      <!-- Dice Section -->
+      <div class="dice-section">
+        <button 
+          (click)="onRollDice()" 
+          id="playground-roll-dice-btn" 
+          class="roll-dice-btn"
+          [disabled]="!canRollDice()"
+        >
+          🎲 Roll Dice
+        </button>
+        <div *ngIf="dice1 !== null && dice2 !== null" class="dice-result">
+          <div class="dice-display">
+            <span class="dice" id="playground-dice-1">{{ dice1 }}</span>
+            <span class="dice" id="playground-dice-2">{{ dice2 }}</span>
+          </div>
+          <div class="dice-total" id="playground-dice-total">
+            Total: <strong>{{ diceTotal }}</strong>
+          </div>
+        </div>
+        <button 
+          (click)="onEndTurn()" 
+          id="playground-end-turn-btn" 
+          class="end-turn-btn"
+          [disabled]="!canEndTurn()"
+        >
+          End Turn
+        </button>
+      </div>
+
+      <!-- Monopoly Board -->
+      <div class="monopoly-board" *ngIf="boardCells.length > 0">
+        <!-- Bottom row (positions 0-10) -->
+        <div class="board-row bottom-row">
+          <div *ngFor="let pos of [0,1,2,3,4,5,6,7,8,9,10]" 
+               class="board-cell" 
+               [class.corner]="pos === 0 || pos === 10"
+               [attr.data-position]="pos">
+            <div class="cell-info">
+              <div class="cell-position">{{ pos }}</div>
+              <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
+            </div>
+            <div class="cell-players">
+              <span *ngFor="let player of getBoardCell(pos)?.playersHere" 
+                    class="player-badge-mini"
+                    [style.background-color]="player.color"
+                    [title]="player.username + ' - $' + player.money">
+                {{ player.username.substring(0, 2) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle section (left side, center, right side) -->
+        <div class="board-middle">
+          <!-- Left column (positions 39-31) -->
+          <div class="board-column left-column">
+            <div *ngFor="let pos of [39,38,37,36,35,34,33,32,31]" 
+                 class="board-cell"
+                 [attr.data-position]="pos">
+              <div class="cell-info">
+                <div class="cell-position">{{ pos }}</div>
+                <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
+              </div>
+              <div class="cell-players">
+                <span *ngFor="let player of getBoardCell(pos)?.playersHere" 
+                      class="player-badge-mini"
+                      [style.background-color]="player.color"
+                      [title]="player.username + ' - $' + player.money">
+                  {{ player.username.substring(0, 2) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center area (game info) -->
+          <div class="board-center">
+            <div class="center-content">
+              <h3>MONOPOLY</h3>
+              <div class="game-stats">
+                <p><strong>Turn:</strong> {{ game?.currentTurnUsername }}</p>
+                <p *ngIf="dice1 && dice2"><strong>Last Roll:</strong> {{ dice1 }} + {{ dice2 }} = {{ diceTotal }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right column (positions 11-19) -->
+          <div class="board-column right-column">
+            <div *ngFor="let pos of [11,12,13,14,15,16,17,18,19]" 
+                 class="board-cell"
+                 [attr.data-position]="pos">
+              <div class="cell-info">
+                <div class="cell-position">{{ pos }}</div>
+                <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
+              </div>
+              <div class="cell-players">
+                <span *ngFor="let player of getBoardCell(pos)?.playersHere" 
+                      class="player-badge-mini"
+                      [style.background-color]="player.color"
+                      [title]="player.username + ' - $' + player.money">
+                  {{ player.username.substring(0, 2) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top row (positions 20-30) -->
+        <div class="board-row top-row">
+          <div *ngFor="let pos of [20,21,22,23,24,25,26,27,28,29,30]" 
+               class="board-cell"
+               [class.corner]="pos === 20 || pos === 30"
+               [attr.data-position]="pos">
+            <div class="cell-info">
+              <div class="cell-position">{{ pos }}</div>
+              <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
+            </div>
+            <div class="cell-players">
+              <span *ngFor="let player of getBoardCell(pos)?.playersHere" 
+                    class="player-badge-mini"
+                    [style.background-color]="player.color"
+                    [title]="player.username + ' - $' + player.money">
+                {{ player.username.substring(0, 2) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="boardCells.length === 0" class="no-board">
+        <p>No board cells found</p>
+      </div>
+    </div>
+  </div>
+</div>

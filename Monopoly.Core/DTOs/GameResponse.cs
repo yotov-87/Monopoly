@@ -8,4 +8,8 @@ public class GameResponse
     public string CreatedBy { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public string Status { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public int CurrentPlayerCount { get; set; }
+    public List<string> Players { get; set; } = new List<string>();
+    public string? CurrentTurnUsername { get; set; }
 }

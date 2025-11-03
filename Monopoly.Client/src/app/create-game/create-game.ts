@@ -35,8 +35,8 @@ export class CreateGameComponent {
     }).subscribe({
       next: (response) => {
         console.log('Game created successfully', response);
-        alert(`Game "${response.name}" created successfully!`);
-        this.router.navigate(['/']);
+        // Navigate to the playground with the game ID
+        this.router.navigate(['/playground', response.id]);
       },
       error: (error) => {
         console.error('Failed to create game', error);

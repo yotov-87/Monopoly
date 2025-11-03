@@ -14,6 +14,37 @@ export interface GameResponse {
   createdBy: string;
   createdAt: string;
   status: string;
+  isActive: boolean;
+  currentPlayerCount: number;
+  players: string[];
+  currentTurnUsername?: string;
+}
+
+export interface AddPlayerRequest {
+  username: string;
+}
+
+export interface BoardCell {
+  id: number;
+  position: number;
+  cellType: number;
+  cellTypeName: string;
+  name: string;
+  playersHere: PlayerPosition[];
+}
+
+export interface PlayerPosition {
+  username: string;
+  position: number;
+  money: number;
+  color: string;
+}
+
+export interface PlaygroundInfo {
+  game: GameResponse;
+  boardCells: BoardCell[];
+  isCreator: boolean;
+  hasAccess: boolean;
 }
 
 @Injectable({
@@ -38,5 +69,25 @@ export class GameService {
 
   getMyGames(): Observable<GameResponse[]> {
     return this.http.get<GameResponse[]>(`${this.apiUrl}/my-games`);
+  }
+
+  addPlayer(gameId: number, username: string): Observable<GameResponse> {
+    return this.http.post<GameResponse>(`${this.apiUrl}/${gameId}/add-player`, { username });
+  }
+
+  getPlaygroundInfo(gameId: number): Observable<PlaygroundInfo> {
+    return this.http.get<PlaygroundInfo>(`${this.apiUrl}/playground-info/${gameId}`);
+  }
+
+  endTurn(gameId: number): Observable<GameResponse> {
+    return this.http.post<GameResponse>(`${this.apiUrl}/${gameId}/end-turn`, {});
+  }
+
+  movePlayer(gameId: number, steps: number): Observable<PlaygroundInfo> {
+    return this.http.post<PlaygroundInfo>(`${this.apiUrl}/${gameId}/move`, { steps });
+  }
+
+  rollDice(gameId: number, dice1: number, dice2: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${gameId}/roll-dice`, { dice1, dice2 });
   }
 }
