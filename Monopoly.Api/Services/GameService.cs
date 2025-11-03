@@ -92,6 +92,7 @@ public class GameService : IGameService
             UserId = userId,
             Position = 0,
             Money = 1500,
+            IsReady = false, // Explicitly set to false
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -269,6 +270,7 @@ public class GameService : IGameService
             UserId = userToAdd.Id,
             Position = 0,
             Money = 1500,
+            IsReady = false, // Explicitly set to false
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

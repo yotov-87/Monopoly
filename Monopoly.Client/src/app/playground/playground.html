@@ -56,7 +56,31 @@
               [class.status-active]="game.status === 'Active'">
           {{ game.status }}
         </span>
-        <button (click)="onLeaveGame()" id="playground-leave-btn" class="leave-btn">Leave</button>
+        
+        <!-- Combined Ready/Leave Button -->
+        <div class="ready-leave-container" *ngIf="game?.status === 'Waiting'">
+          <button 
+            *ngIf="!isReady"
+            (click)="onToggleReady()" 
+            class="ready-btn combined-btn">
+            {{ readyCountdown > 0 ? 'Ready (' + readyCountdown + 's)' : 'Click to Ready' }}
+          </button>
+          <button 
+            *ngIf="isReady"
+            (click)="onLeaveGame()" 
+            class="leave-btn combined-btn">
+            Leave
+          </button>
+        </div>
+        
+        <!-- Regular Leave Button (when game is Active) -->
+        <button 
+          *ngIf="game?.status === 'Active'"
+          (click)="onLeaveGame()" 
+          id="playground-leave-btn" 
+          class="leave-btn">
+          Leave
+        </button>
       </div>
     </div>
 
@@ -79,17 +103,6 @@
     </div>
 
     <div class="board-container">
-      <!-- Ready Button Section (only show in Waiting status) -->
-      <div class="ready-section" *ngIf="game?.status === 'Waiting'">
-        <button 
-          (click)="onToggleReady()" 
-          class="ready-btn"
-          [class.ready-active]="isReady">
-          {{ isReady ? '✓ Ready!' : 'Click to Ready' }}
-        </button>
-        <p class="ready-hint">All players must be ready to start the game</p>
-      </div>
-
       <!-- Monopoly Board -->
       <div class="board-with-players">
         <!-- Game Board -->

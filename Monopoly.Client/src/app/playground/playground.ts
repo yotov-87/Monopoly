@@ -32,6 +32,10 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   playerReadyStates: Map<string, boolean> = new Map();
   isReady: boolean = false;
   expandedPlayerIndex: number | null = null;
+  canLeave: boolean = false;
+  readyTimeoutSeconds: number = 60;
+  readyCountdown: number = 60;
+  private readyTimerInterval: any = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -62,6 +66,25 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(sub => sub.unsubscribe());
     if (this.gameId !== null) {
       this.signalRService.leaveGame(this.gameId);
+    }
+    this.clearReadyTimer();
+  }
+
+  startReadyTimer(): void {
+    this.readyCountdown = this.readyTimeoutSeconds;
+    this.readyTimerInterval = setInterval(() => {
+      this.readyCountdown--;
+      if (this.readyCountdown <= 0) {
+        this.clearReadyTimer();
+        this.canLeave = true;
+      }
+    }, 1000);
+  }
+
+  clearReadyTimer(): void {
+    if (this.readyTimerInterval) {
+      clearInterval(this.readyTimerInterval);
+      this.readyTimerInterval = null;
     }
   }
 
@@ -133,9 +156,17 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.signalRService.playerReady$.subscribe(event => {
         if (event.gameId === this.gameId) {
+          // Update ready state for all players
           this.playerReadyStates.set(event.username, event.isReady);
+          
+          // Only update local state if it's the current user
           if (event.username === this.currentUsername) {
             this.isReady = event.isReady;
+            // If this user became ready, stop the timer and enable leave
+            if (event.isReady) {
+              this.clearReadyTimer();
+              this.canLeave = true;
+            }
           }
         }
       })
@@ -189,8 +220,18 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
             this.playerReadyStates.set(player.username, player.isReady || false);
             if (player.username === this.currentUsername) {
               this.isReady = player.isReady || false;
+              // If already ready, stop timer and enable leave
+              if (this.isReady) {
+                this.clearReadyTimer();
+                this.canLeave = true;
+              }
             }
           });
+        
+        // Start ready timer only if game is Waiting and user is not ready yet
+        if (this.game.status === 'Waiting' && !this.isReady) {
+          this.startReadyTimer();
+        }
       },
       error: (error) => {
         console.error('Failed to load playground', error);
@@ -235,6 +276,9 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   }
 
   onLeaveGame(): void {
+    if (!this.canLeave && !this.isReady) {
+      return; // Can't leave if not ready and timer hasn't expired
+    }
     this.router.navigate(['/']);
   }
 
@@ -344,6 +388,10 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
     this.gameService.setPlayerReady(this.gameId, newReadyState).subscribe({
       next: () => {
         console.log(`Ready status set to ${newReadyState}`);
+        if (newReadyState) {
+          this.clearReadyTimer();
+          this.canLeave = true;
+        }
       },
       error: (error) => {
         console.error('Failed to set ready status', error);

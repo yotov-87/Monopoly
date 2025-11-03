@@ -123,12 +123,41 @@
 
 .leave-btn:hover {
   background-color: #c62828;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(211, 47, 47, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .leave-btn:active {
   transform: translateY(0);
+}
+
+.ready-leave-container {
+  display: flex;
+  gap: 10px;
+}
+
+.combined-btn {
+  min-width: 140px;
+}
+
+.ready-btn.combined-btn {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ready-btn.combined-btn:hover {
+  background: linear-gradient(135deg, #66bb6a, #81c784);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
 }
 
 .add-player-form {
