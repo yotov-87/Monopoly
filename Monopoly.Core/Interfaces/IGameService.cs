@@ -14,4 +14,5 @@ public interface IGameService
     Task<GameResponse?> EndTurnAsync(int gameId, int userId);
     Task<PlaygroundInfoResponse?> MovePlayerAsync(int gameId, int userId, int steps);
     Task<bool> BroadcastDiceRollAsync(int gameId, int userId, int dice1, int dice2);
+    Task<bool> SetPlayerReadyAsync(int gameId, int userId, bool isReady);
 }

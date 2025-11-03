@@ -38,6 +38,7 @@ export interface PlayerPosition {
   position: number;
   money: number;
   color: string;
+  isReady: boolean;
 }
 
 export interface PlaygroundInfo {
@@ -89,5 +90,9 @@ export class GameService {
 
   rollDice(gameId: number, dice1: number, dice2: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/${gameId}/roll-dice`, { dice1, dice2 });
+  }
+
+  setPlayerReady(gameId: number, isReady: boolean): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${gameId}/ready`, { isReady });
   }
 }

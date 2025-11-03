@@ -24,6 +24,24 @@ export interface TurnChangedEvent {
   previousTurnUsername: string;
 }
 
+export interface PlayerReadyEvent {
+  gameId: number;
+  username: string;
+  isReady: boolean;
+  allPlayersReady: boolean;
+}
+
+export interface GameStartedEvent {
+  gameId: number;
+}
+
+export interface PlayerJoinedEvent {
+  gameId: number;
+  username: string;
+  currentPlayerCount: number;
+  maxPlayerCount: number;
+}
+
 export interface PlayerPositionUpdate {
   username: string;
   position: number;
@@ -39,6 +57,9 @@ export class SignalRService {
   public diceRolled$ = new Subject<DiceRolledEvent>();
   public playerMoved$ = new Subject<PlayerMovedEvent>();
   public turnChanged$ = new Subject<TurnChangedEvent>();
+  public playerReady$ = new Subject<PlayerReadyEvent>();
+  public gameStarted$ = new Subject<GameStartedEvent>();
+  public playerJoined$ = new Subject<PlayerJoinedEvent>();
   public playerPositions$ = new BehaviorSubject<Map<string, number>>(new Map());
 
   constructor(private authService: AuthService) {}
@@ -112,6 +133,18 @@ export class SignalRService {
 
     this.hubConnection.on('TurnChanged', (event: TurnChangedEvent) => {
       this.turnChanged$.next(event);
+    });
+
+    this.hubConnection.on('PlayerReady', (event: PlayerReadyEvent) => {
+      this.playerReady$.next(event);
+    });
+
+    this.hubConnection.on('GameStarted', (event: GameStartedEvent) => {
+      this.gameStarted$.next(event);
+    });
+
+    this.hubConnection.on('PlayerJoined', (event: PlayerJoinedEvent) => {
+      this.playerJoined$.next(event);
     });
   }
 }

@@ -29,6 +29,8 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   hasRolledDice: boolean = false;
   hasMovedPlayer: boolean = false;
+  playerReadyStates: Map<string, boolean> = new Map();
+  isReady: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -125,6 +127,38 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         }
       })
     );
+
+    // Subscribe to player ready events
+    this.subscriptions.push(
+      this.signalRService.playerReady$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          this.playerReadyStates.set(event.username, event.isReady);
+          if (event.username === this.currentUsername) {
+            this.isReady = event.isReady;
+          }
+        }
+      })
+    );
+
+    // Subscribe to game started events
+    this.subscriptions.push(
+      this.signalRService.gameStarted$.subscribe(event => {
+        if (event.gameId === this.gameId && this.game) {
+          this.game.status = 'Active';
+        }
+      })
+    );
+
+    // Subscribe to player joined events
+    this.subscriptions.push(
+      this.signalRService.playerJoined$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          console.log(`Player ${event.username} joined the game`);
+          // Reload full playground data to get updated player list
+          this.loadGame();
+        }
+      })
+    );
   }
 
   loadGame(): void {
@@ -145,6 +179,17 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
           .flatMap(cell => cell.playersHere)
           .map(player => ({ username: player.username, position: player.position }));
         this.signalRService.initializePlayerPositions(playerPositions);
+
+        // Initialize ready states from loaded data
+        this.playerReadyStates.clear();
+        this.boardCells
+          .flatMap(cell => cell.playersHere)
+          .forEach(player => {
+            this.playerReadyStates.set(player.username, player.isReady || false);
+            if (player.username === this.currentUsername) {
+              this.isReady = player.isReady || false;
+            }
+          });
       },
       error: (error) => {
         console.error('Failed to load playground', error);
@@ -283,11 +328,31 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   }
 
   canRollDice(): boolean {
-    return this.isMyTurn() && !this.hasRolledDice;
+    return this.isMyTurn() && !this.hasRolledDice && this.game?.status === 'Active';
   }
 
   canEndTurn(): boolean {
     return this.isMyTurn() && this.hasRolledDice && this.hasMovedPlayer;
+  }
+
+  onToggleReady(): void {
+    if (this.gameId === null) return;
+
+    const newReadyState = !this.isReady;
+    
+    this.gameService.setPlayerReady(this.gameId, newReadyState).subscribe({
+      next: () => {
+        console.log(`Ready status set to ${newReadyState}`);
+      },
+      error: (error) => {
+        console.error('Failed to set ready status', error);
+        alert('Failed to set ready status: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  isPlayerReady(username: string): boolean {
+    return this.playerReadyStates.get(username) || false;
   }
 
   updateBoardCellsWithPlayerPosition(username: string, fromPosition: number, toPosition: number): void {
@@ -310,7 +375,8 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
           username: username,
           position: toPosition,
           money: 1500, // Default value
-          color: this.getPlayerColor(username)
+          color: this.getPlayerColor(username),
+          isReady: false // Default to not ready
         };
         
         // Check if player passed GO (when moving from higher position to lower, or distance >= 40)

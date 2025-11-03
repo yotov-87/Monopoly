@@ -9,6 +9,7 @@ public class PlayerState
     public int Money { get; set; } = 1500; // Starting money
     public bool IsInJail { get; set; } = false;
     public int JailTurns { get; set; } = 0;
+    public bool IsReady { get; set; } = false; // Player ready status
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

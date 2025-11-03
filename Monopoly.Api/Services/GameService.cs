@@ -280,6 +280,17 @@ public class GameService : IGameService
         await _dbContext.Entry(game).Collection(g => g.GamePlayers).LoadAsync();
         await _dbContext.Entry(game).Reference(g => g.CurrentTurnUser).LoadAsync();
 
+        // Broadcast PlayerJoined event via SignalR
+        var playerJoinedEvent = new PlayerJoinedEvent
+        {
+            GameId = gameId,
+            Username = userToAdd.Username,
+            CurrentPlayerCount = game.GamePlayers.Count,
+            MaxPlayerCount = game.PlayerCount
+        };
+
+        await _hubContext.Clients.Group($"game_{gameId}").SendAsync("PlayerJoined", playerJoinedEvent);
+
         // Return updated game response
         return new GameResponse
         {
@@ -370,7 +381,8 @@ public class GameService : IGameService
                         Username = ps.User.Username,
                         Position = ps.Position,
                         Money = ps.Money,
-                        Color = playerColorMap.GetValueOrDefault(ps.UserId, "#999999")
+                        Color = playerColorMap.GetValueOrDefault(ps.UserId, "#999999"),
+                        IsReady = ps.IsReady
                     })
                     .ToList()
             })
@@ -562,6 +574,71 @@ public class GameService : IGameService
             Dice2 = dice2,
             Total = dice1 + dice2
         });
+
+        return true;
+    }
+
+    public async Task<bool> SetPlayerReadyAsync(int gameId, int userId, bool isReady)
+    {
+        var game = await _dbContext.Games
+            .Include(g => g.GamePlayers)
+                .ThenInclude(gp => gp.User)
+            .Include(g => g.PlayerStates)
+                .ThenInclude(ps => ps.User)
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null)
+        {
+            return false;
+        }
+
+        // Check if user is in the game
+        var isPlayerInGame = game.GamePlayers.Any(gp => gp.UserId == userId);
+        if (!isPlayerInGame)
+        {
+            return false;
+        }
+
+        // Update player ready status
+        var playerState = await _dbContext.PlayerStates
+            .Include(ps => ps.User)
+            .FirstOrDefaultAsync(ps => ps.GameId == gameId && ps.UserId == userId);
+
+        if (playerState == null)
+        {
+            return false;
+        }
+
+        playerState.IsReady = isReady;
+        playerState.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync();
+
+        // Check if all players are ready
+        var allPlayersReady = game.PlayerStates.All(ps => ps.IsReady);
+
+        // Broadcast player ready status to all players in the game
+        await _hubContext.Clients.Group($"game_{gameId}").SendAsync("PlayerReady", new PlayerReadyEvent
+        {
+            GameId = gameId,
+            Username = playerState.User.Username,
+            IsReady = isReady,
+            AllPlayersReady = allPlayersReady
+        });
+
+        // If all players are ready and game is Waiting, change status to Active
+        if (allPlayersReady && game.Status == "Waiting")
+        {
+            game.Status = "Active";
+            await _dbContext.SaveChangesAsync();
+
+            // Broadcast game started event
+            await _hubContext.Clients.Group($"game_{gameId}").SendAsync("GameStarted", new
+            {
+                GameId = gameId,
+                Status = game.Status
+            });
+        }
 
         return true;
     }

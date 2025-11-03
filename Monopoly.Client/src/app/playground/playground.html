@@ -95,8 +95,25 @@
                 <span class="player-detail-label">Position:</span>
                 <span class="player-detail-value player-position">{{ getBoardCell(player.currentPosition)?.name || 'Cell ' + player.currentPosition }}</span>
               </div>
+              <div class="player-detail-row" *ngIf="game?.status === 'Waiting'">
+                <span class="player-detail-label">Status:</span>
+                <span class="player-detail-value" [class.ready-status]="isPlayerReady(player.username)">
+                  {{ isPlayerReady(player.username) ? '✓ Ready' : 'Not Ready' }}
+                </span>
+              </div>
             </div>
           </div>
+        </div>
+
+        <!-- Ready Button Section (only show in Waiting status) -->
+        <div class="ready-section" *ngIf="game?.status === 'Waiting'">
+          <button 
+            (click)="onToggleReady()" 
+            class="ready-btn"
+            [class.ready-active]="isReady">
+            {{ isReady ? '✓ Ready!' : 'Click to Ready' }}
+          </button>
+          <p class="ready-hint">All players must be ready to start the game</p>
         </div>
 
         <!-- Game Board -->

@@ -192,4 +192,25 @@ public class GameController : ControllerBase
 
         return Ok(new { message = "Dice roll broadcasted successfully." });
     }
+
+    [HttpPost("{gameId}/ready")]
+    [Authorize]
+    public async Task<IActionResult> SetPlayerReady(int gameId, [FromBody] SetPlayerReadyRequest request)
+    {
+        // Get user ID from JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Unauthorized(new { message = "Invalid token." });
+        }
+
+        var success = await _gameService.SetPlayerReadyAsync(gameId, userId, request.IsReady);
+
+        if (!success)
+        {
+            return NotFound(new { message = "Game not found or player not in game." });
+        }
+
+        return Ok(new { message = "Ready status updated successfully." });
+    }
 }
