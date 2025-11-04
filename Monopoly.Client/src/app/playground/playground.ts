@@ -6,10 +6,11 @@ import { GameService, GameResponse, BoardCell, PlaygroundInfo } from '../service
 import { AuthService } from '../services/auth.service';
 import { SignalRService } from '../services/signalr.service';
 import { Subscription } from 'rxjs';
+import { BoardCellComponent } from '../components/board-cell/board-cell.component';
 
 @Component({
   selector: 'app-playground',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BoardCellComponent],
   templateUrl: './playground.html',
   styleUrl: './playground.scss',
 })
@@ -540,5 +541,12 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
       'border-width': '4px',
       'box-shadow': `0 0 15px ${colors[0]}60`
     };
+  }
+
+  getCurrentPlayerColor(): string {
+    if (!this.game?.currentTurnUsername) {
+      return '#2e7d32';
+    }
+    return this.getPlayerColor(this.game.currentTurnUsername);
   }
 }

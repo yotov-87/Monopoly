@@ -734,6 +734,7 @@
 
 .board-row {
   display: flex;
+  overflow: visible;
 }
 
 .bottom-row {
@@ -760,12 +761,14 @@
   display: flex;
   flex: 1;
   min-height: 0;
+  overflow: visible;
 }
 
 .board-column {
   display: flex;
   flex-direction: column;
   width: 13.33%;
+  overflow: visible;
 }
 
 .board-column .board-cell {
@@ -816,7 +819,7 @@
   padding: 8px;
   position: relative;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.3s;
-  overflow: hidden;
+  overflow: visible;
   box-sizing: border-box;
 }
 
@@ -883,6 +886,99 @@
   align-items: center;
   gap: 4px;
   width: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.color-stripe {
+  position: absolute;
+  z-index: 1;
+}
+
+// Bottom row (1-9) - stripe at TOP edge, full width
+.bottom-row .color-stripe {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 15px;
+  width: 100%;
+}
+
+// Top row (21-29) - stripe at BOTTOM edge, full width  
+.top-row .color-stripe {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 15px;
+  width: 100%;
+}
+
+// Left column (31-39) - stripe at RIGHT edge, full height
+.left-column .color-stripe {
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 15px;
+  height: 100%;
+}
+
+// Right column (11-19) - stripe at LEFT edge, full height
+.right-column .color-stripe {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 15px;
+  height: 100%;
+}
+
+// Adjust cell-info padding to avoid overlap with stripes
+.bottom-row .cell-info {
+  padding-top: 18px;
+}
+
+.top-row .cell-info {
+  padding-bottom: 18px;
+}
+
+.left-column .cell-info {
+  padding-right: 18px;
+}
+
+.right-column .cell-info {
+  padding-left: 18px;
+}
+
+// Monopoly color groups for stripes
+.color-stripe.Brown {
+  background-color: #8B4513;
+}
+
+.color-stripe.LightBlue {
+  background-color: #87CEEB;
+}
+
+.color-stripe.Pink {
+  background-color: #FF1493;
+}
+
+.color-stripe.Orange {
+  background-color: #FFA500;
+}
+
+.color-stripe.Red {
+  background-color: #FF0000;
+}
+
+.color-stripe.Yellow {
+  background-color: #FFFF00;
+}
+
+.color-stripe.Green {
+  background-color: #00FF00;
+}
+
+.color-stripe.DarkBlue {
+  background-color: #0000CD;
 }
 
 .cell-position {
@@ -893,54 +989,6 @@
   padding: 2px 4px;
   border-radius: 3px;
   text-align: center;
-}
-
-// Colored cell positions for properties
-.cell-position.has-color {
-  color: white;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  padding: 3px 6px;
-}
-
-.cell-position.Brown {
-  background-color: #8B4513;
-}
-
-.cell-position.LightBlue {
-  background-color: #87CEEB;
-  color: #000;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
-}
-
-.cell-position.Pink {
-  background-color: #FF1493;
-}
-
-.cell-position.Orange {
-  background-color: #FFA500;
-  color: #000;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
-}
-
-.cell-position.Red {
-  background-color: #FF0000;
-}
-
-.cell-position.Yellow {
-  background-color: #FFFF00;
-  color: #000;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
-}
-
-.cell-position.Green {
-  background-color: #00FF00;
-  color: #000;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
-}
-
-.cell-position.DarkBlue {
-  background-color: #0000CD;
 }
 
 .cell-name {

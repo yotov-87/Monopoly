@@ -104,55 +104,34 @@
         <div class="monopoly-board" *ngIf="boardCells.length > 0">
         <!-- Bottom row (positions 0-10) -->
         <div class="board-row bottom-row">
-          <div *ngFor="let pos of [0,1,2,3,4,5,6,7,8,9,10]" 
-               class="board-cell" 
-               [class.corner]="pos === 0 || pos === 10"
-               [class.has-current-player]="cellHasCurrentPlayer(pos)"
-               [class.has-players]="getCellPlayerColors(pos).length > 0"
-               [ngStyle]="getCellBorderStyle(pos)"
-               [attr.data-position]="pos">
-            <div class="cell-info">
-              <div class="cell-position" 
-                   [ngClass]="getBoardCell(pos)?.colorGroup"
-                   [class.has-color]="getBoardCell(pos)?.colorGroup">{{ pos }}</div>
-              <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
-            </div>
-            <div class="cell-players">
-              <span *ngFor="let player of getBoardCell(pos)?.playersHere" 
-                    class="player-badge-mini"
-                    [style.background-color]="player.color"
-                    [title]="player.username + ' - $' + player.money">
-                {{ player.username.substring(0, 2) }}
-              </span>
-            </div>
-          </div>
+          <app-board-cell *ngFor="let pos of [0,1,2,3,4,5,6,7,8,9,10]"
+                          [cell]="getBoardCell(pos)!"
+                          [isCorner]="pos === 0 || pos === 10"
+                          [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
+                          [hasPlayers]="getCellPlayerColors(pos).length > 0"
+                          [borderStyle]="getCellBorderStyle(pos)"
+                          [position]="pos"
+                          [rowType]="'bottom'"
+                          [currentPlayerColor]="getCurrentPlayerColor()"
+                          [currentTurnUsername]="game?.currentTurnUsername || ''">
+          </app-board-cell>
         </div>
 
         <!-- Middle section (left side, center, right side) -->
         <div class="board-middle">
           <!-- Left column (positions 39-31, from top to bottom) -->
           <div class="board-column left-column">
-            <div *ngFor="let pos of [39,38,37,36,35,34,33,32,31]" 
-                 class="board-cell"
-                 [class.has-current-player]="cellHasCurrentPlayer(pos)"
-                 [class.has-players]="getCellPlayerColors(pos).length > 0"
-                 [ngStyle]="getCellBorderStyle(pos)"
-                 [attr.data-position]="pos">
-              <div class="cell-info">
-                <div class="cell-position" 
-                     [ngClass]="getBoardCell(pos)?.colorGroup"
-                     [class.has-color]="getBoardCell(pos)?.colorGroup">{{ pos }}</div>
-                <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
-              </div>
-              <div class="cell-players">
-                <span *ngFor="let player of getBoardCell(pos)?.playersHere" 
-                      class="player-badge-mini"
-                      [style.background-color]="player.color"
-                      [title]="player.username + ' - $' + player.money">
-                  {{ player.username.substring(0, 2) }}
-                </span>
-              </div>
-            </div>
+            <app-board-cell *ngFor="let pos of [39,38,37,36,35,34,33,32,31]"
+                            [cell]="getBoardCell(pos)!"
+                            [isCorner]="false"
+                            [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
+                            [hasPlayers]="getCellPlayerColors(pos).length > 0"
+                            [borderStyle]="getCellBorderStyle(pos)"
+                            [position]="pos"
+                            [rowType]="'left'"
+                            [currentPlayerColor]="getCurrentPlayerColor()"
+                            [currentTurnUsername]="game?.currentTurnUsername || ''">
+            </app-board-cell>
           </div>
 
           <!-- Center area (game info) -->
@@ -191,54 +170,33 @@
 
           <!-- Right column (positions 11-19) -->
           <div class="board-column right-column">
-            <div *ngFor="let pos of [11,12,13,14,15,16,17,18,19]" 
-                 class="board-cell"
-                 [class.has-current-player]="cellHasCurrentPlayer(pos)"
-                 [class.has-players]="getCellPlayerColors(pos).length > 0"
-                 [ngStyle]="getCellBorderStyle(pos)"
-                 [attr.data-position]="pos">
-              <div class="cell-info">
-                <div class="cell-position" 
-                     [ngClass]="getBoardCell(pos)?.colorGroup"
-                     [class.has-color]="getBoardCell(pos)?.colorGroup">{{ pos }}</div>
-                <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
-              </div>
-              <div class="cell-players">
-                <span *ngFor="let player of getBoardCell(pos)?.playersHere" 
-                      class="player-badge-mini"
-                      [style.background-color]="player.color"
-                      [title]="player.username + ' - $' + player.money">
-                  {{ player.username.substring(0, 2) }}
-                </span>
-              </div>
-            </div>
+            <app-board-cell *ngFor="let pos of [11,12,13,14,15,16,17,18,19]"
+                            [cell]="getBoardCell(pos)!"
+                            [isCorner]="false"
+                            [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
+                            [hasPlayers]="getCellPlayerColors(pos).length > 0"
+                            [borderStyle]="getCellBorderStyle(pos)"
+                            [position]="pos"
+                            [rowType]="'right'"
+                            [currentPlayerColor]="getCurrentPlayerColor()"
+                            [currentTurnUsername]="game?.currentTurnUsername || ''">
+            </app-board-cell>
           </div>
         </div>
 
         <!-- Top row (positions 30-20, from right to left) -->
         <div class="board-row top-row">
-          <div *ngFor="let pos of [30,29,28,27,26,25,24,23,22,21,20]" 
-               class="board-cell"
-               [class.corner]="pos === 20 || pos === 30"
-               [class.has-current-player]="cellHasCurrentPlayer(pos)"
-               [class.has-players]="getCellPlayerColors(pos).length > 0"
-               [ngStyle]="getCellBorderStyle(pos)"
-               [attr.data-position]="pos">
-            <div class="cell-info">
-              <div class="cell-position" 
-                   [ngClass]="getBoardCell(pos)?.colorGroup"
-                   [class.has-color]="getBoardCell(pos)?.colorGroup">{{ pos }}</div>
-              <div class="cell-name">{{ getBoardCell(pos)?.name }}</div>
-            </div>
-            <div class="cell-players">
-              <span *ngFor="let player of getBoardCell(pos)?.playersHere" 
-                    class="player-badge-mini"
-                    [style.background-color]="player.color"
-                    [title]="player.username + ' - $' + player.money">
-                {{ player.username.substring(0, 2) }}
-              </span>
-            </div>
-          </div>
+          <app-board-cell *ngFor="let pos of [30,29,28,27,26,25,24,23,22,21,20]"
+                          [cell]="getBoardCell(pos)!"
+                          [isCorner]="pos === 20 || pos === 30"
+                          [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
+                          [hasPlayers]="getCellPlayerColors(pos).length > 0"
+                          [borderStyle]="getCellBorderStyle(pos)"
+                          [position]="pos"
+                          [rowType]="'top'"
+                          [currentPlayerColor]="getCurrentPlayerColor()"
+                          [currentTurnUsername]="game?.currentTurnUsername || ''">
+          </app-board-cell>
         </div>
       </div>
       </div>

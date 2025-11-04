@@ -1,0 +1,40 @@
+<div class="board-cell" 
+     [class.corner]="isCorner"
+     [class.has-current-player]="isCurrentPlayer"
+     [class.has-players]="hasPlayers"
+     [class.has-color-border]="cell.colorGroup"
+     [ngStyle]="borderStyle"
+  [style.border-bottom-color]="rowType === 'bottom' && getColorGroupBorderColor() ? getColorGroupBorderColor() : null"
+  [style.border-bottom-width]="rowType === 'bottom' && getColorGroupBorderColor() ? '18px' : null"
+  [style.border-top-color]="rowType === 'top' && getColorGroupBorderColor() ? getColorGroupBorderColor() : null"
+  [style.border-top-width]="rowType === 'top' && getColorGroupBorderColor() ? '18px' : null"
+  [style.border-left-color]="rowType === 'right' && getColorGroupBorderColor() ? getColorGroupBorderColor() : null"
+  [style.border-left-width]="rowType === 'right' && getColorGroupBorderColor() ? '18px' : null"
+  [style.border-right-color]="rowType === 'left' && getColorGroupBorderColor() ? getColorGroupBorderColor() : null"
+  [style.border-right-width]="rowType === 'left' && getColorGroupBorderColor() ? '18px' : null"
+  [style.--player-color]="currentPlayerColor"
+     [attr.data-position]="position">
+  
+  <!-- Player badges positioned opposite to color stripe -->
+  <div class="cell-players" 
+       [class.players-top]="rowType === 'bottom'"
+       [class.players-bottom]="rowType === 'top'"
+       [class.players-left]="rowType === 'right'"
+       [class.players-right]="rowType === 'left'">
+    <span *ngFor="let player of cell.playersHere" 
+          class="player-badge-mini"
+          [class.current-turn]="isPlayerCurrentTurn(player.username)"
+          [style.background-color]="player.color"
+          [title]="player.username + ' - $' + player.money">
+      {{ player.username.substring(0, 2) }}
+    </span>
+  </div>
+
+  <div class="cell-info">
+    <div *ngIf="cell.colorGroup" 
+         class="color-stripe"
+         [ngClass]="cell.colorGroup"></div>
+    <div class="cell-position">{{ position }}</div>
+    <div class="cell-name">{{ cell.name }}</div>
+  </div>
+</div>
