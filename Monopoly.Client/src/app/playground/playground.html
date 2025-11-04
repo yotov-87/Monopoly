@@ -97,118 +97,47 @@
       </button>
     </div>
 
-    <div class="board-container" [class.game-inactive]="game?.status === 'Waiting'">
-      <!-- Monopoly Board -->
-      <div class="board-with-players">
-        <!-- Game Board -->
-        <div class="monopoly-board" *ngIf="boardCells.length > 0">
-        <!-- Bottom row (positions 0-10) -->
-        <div class="board-row bottom-row">
-          <app-board-cell *ngFor="let pos of [0,1,2,3,4,5,6,7,8,9,10]; trackBy: trackByPosition"
-                          [cell]="getBoardCell(pos)!"
-                          [isCorner]="pos === 0 || pos === 10"
-                          [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
-                          [hasPlayers]="getCellPlayerColors(pos).length > 0"
-                          [borderStyle]="getCellBorderStyle(pos)"
-                          [position]="pos"
-                          [rowType]="'bottom'"
-                          [currentPlayerColor]="getCurrentPlayerColor()"
-                          [currentTurnUsername]="game?.currentTurnUsername || ''"
-                          [ownerColor]="getOwnerColor(pos)">
-          </app-board-cell>
-        </div>
-
-        <!-- Middle section (left side, center, right side) -->
-        <div class="board-middle">
-          <!-- Left column (positions 39-31, from top to bottom) -->
-          <div class="board-column left-column">
-            <app-board-cell *ngFor="let pos of [39,38,37,36,35,34,33,32,31]; trackBy: trackByPosition"
-                            [cell]="getBoardCell(pos)!"
-                            [isCorner]="false"
-                            [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
-                            [hasPlayers]="getCellPlayerColors(pos).length > 0"
-                            [borderStyle]="getCellBorderStyle(pos)"
-                            [position]="pos"
-                            [rowType]="'left'"
-                            [currentPlayerColor]="getCurrentPlayerColor()"
-                            [currentTurnUsername]="game?.currentTurnUsername || ''"
-                            [ownerColor]="getOwnerColor(pos)">
-            </app-board-cell>
-          </div>
-
-          <!-- Center area (game info) -->
-          <div class="board-center">
-            <div class="center-content">
-              <!-- Dice Section -->
-              <div class="dice-section-center">
-                <button 
-                  (click)="onRollDice()" 
-                  id="playground-roll-dice-btn" 
-                  class="roll-dice-btn"
-                  [disabled]="!canRollDice()"
-                >
-                  🎲 Roll Dice
-                </button>
-                <div *ngIf="dice1 !== null && dice2 !== null" class="dice-result">
-                  <div class="dice-display">
-                    <span class="dice" id="playground-dice-1">{{ dice1 }}</span>
-                    <span class="dice" id="playground-dice-2">{{ dice2 }}</span>
-                  </div>
-                  <div class="dice-total" id="playground-dice-total">
-                    Total: <strong>{{ diceTotal }}</strong>
-                  </div>
-                </div>
-                <button 
-                  (click)="onEndTurn()" 
-                  id="playground-end-turn-btn" 
-                  class="end-turn-btn"
-                  [disabled]="!canEndTurn()"
-                >
-                  End Turn
-                </button>
-              </div>
+    <!-- Monopoly Board Component -->
+    <app-monopoly-board
+      [boardCells]="boardCells"
+      [currentPlayerColor]="getCurrentPlayerColor()"
+      [currentTurnUsername]="game?.currentTurnUsername || ''"
+      [isGameInactive]="game?.status === 'Waiting'">
+      
+      <!-- Center content (dice and controls) -->
+      <div class="center-content">
+        <!-- Dice Section -->
+        <div class="dice-section-center">
+          <button 
+            (click)="onRollDice()" 
+            id="playground-roll-dice-btn" 
+            class="roll-dice-btn"
+            [disabled]="!canRollDice()"
+          >
+            🎲 Roll Dice
+          </button>
+          <div *ngIf="dice1 !== null && dice2 !== null" class="dice-result">
+            <div class="dice-display">
+              <span class="dice" id="playground-dice-1">{{ dice1 }}</span>
+              <span class="dice" id="playground-dice-2">{{ dice2 }}</span>
+            </div>
+            <div class="dice-total" id="playground-dice-total">
+              Total: <strong>{{ diceTotal }}</strong>
             </div>
           </div>
-
-          <!-- Right column (positions 11-19) -->
-          <div class="board-column right-column">
-            <app-board-cell *ngFor="let pos of [11,12,13,14,15,16,17,18,19]; trackBy: trackByPosition"
-                            [cell]="getBoardCell(pos)!"
-                            [isCorner]="false"
-                            [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
-                            [hasPlayers]="getCellPlayerColors(pos).length > 0"
-                            [borderStyle]="getCellBorderStyle(pos)"
-                            [position]="pos"
-                            [rowType]="'right'"
-                            [currentPlayerColor]="getCurrentPlayerColor()"
-                            [currentTurnUsername]="game?.currentTurnUsername || ''"
-                            [ownerColor]="getOwnerColor(pos)">
-            </app-board-cell>
-          </div>
-        </div>
-
-        <!-- Top row (positions 30-20, from right to left) -->
-        <div class="board-row top-row">
-          <app-board-cell *ngFor="let pos of [30,29,28,27,26,25,24,23,22,21,20]; trackBy: trackByPosition"
-                          [cell]="getBoardCell(pos)!"
-                          [isCorner]="pos === 20 || pos === 30"
-                          [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
-                          [hasPlayers]="getCellPlayerColors(pos).length > 0"
-                          [borderStyle]="getCellBorderStyle(pos)"
-                          [position]="pos"
-                          [rowType]="'top'"
-                          [currentPlayerColor]="getCurrentPlayerColor()"
-                          [currentTurnUsername]="game?.currentTurnUsername || ''"
-                          [ownerColor]="getOwnerColor(pos)">
-          </app-board-cell>
+          <button 
+            (click)="onEndTurn()" 
+            id="playground-end-turn-btn" 
+            class="end-turn-btn"
+            [disabled]="!canEndTurn()"
+          >
+            End Turn
+          </button>
         </div>
       </div>
-      </div>
+      
+    </app-monopoly-board>
 
-      <div *ngIf="boardCells.length === 0" class="no-board">
-        <p>No board cells found</p>
-      </div>
-    </div>
   </div>
 
   <!-- Property Purchase Popup -->

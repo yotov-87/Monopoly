@@ -6,12 +6,12 @@ import { GameService, GameResponse, BoardCell, PlaygroundInfo } from '../service
 import { AuthService } from '../services/auth.service';
 import { SignalRService } from '../services/signalr.service';
 import { Subscription } from 'rxjs';
-import { BoardCellComponent } from '../components/board-cell/board-cell.component';
+import { MonopolyBoardComponent } from '../components/monopoly-board/monopoly-board.component';
 import { PropertyPopupComponent } from '../components/property-popup/property-popup.component';
 
 @Component({
   selector: 'app-playground',
-  imports: [CommonModule, FormsModule, BoardCellComponent, PropertyPopupComponent],
+  imports: [CommonModule, FormsModule, MonopolyBoardComponent, PropertyPopupComponent],
   templateUrl: './playground.html',
   styleUrl: './playground.scss',
 })

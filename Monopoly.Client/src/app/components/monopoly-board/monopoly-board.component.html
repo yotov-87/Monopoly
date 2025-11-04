@@ -1,0 +1,86 @@
+<div class="board-container" [class.game-inactive]="isGameInactive">
+  <div class="monopoly-board" *ngIf="boardCells.length > 0">
+    
+    <!-- Bottom row (positions 0-10) -->
+    <div class="board-row board-row-bottom">
+      <app-board-cell 
+        *ngFor="let pos of getBottomCells(); trackBy: trackByPosition"
+        [cell]="getBoardCell(pos)!"
+        [isCorner]="isCorner(pos)"
+        [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
+        [hasPlayers]="getCellPlayerColors(pos).length > 0"
+        [borderStyle]="getCellBorderStyle(pos)"
+        [position]="pos"
+        [rowType]="'bottom'"
+        [currentPlayerColor]="currentPlayerColor"
+        [currentTurnUsername]="currentTurnUsername"
+        [ownerColor]="getOwnerColor(pos)">
+      </app-board-cell>
+    </div>
+
+    <!-- Middle section -->
+    <div class="board-middle">
+      
+      <!-- Left column (positions 39-31) -->
+      <div class="board-column board-column-left">
+        <app-board-cell 
+          *ngFor="let pos of getLeftCells(); trackBy: trackByPosition"
+          [cell]="getBoardCell(pos)!"
+          [isCorner]="isCorner(pos)"
+          [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
+          [hasPlayers]="getCellPlayerColors(pos).length > 0"
+          [borderStyle]="getCellBorderStyle(pos)"
+          [position]="pos"
+          [rowType]="'left'"
+          [currentPlayerColor]="currentPlayerColor"
+          [currentTurnUsername]="currentTurnUsername"
+          [ownerColor]="getOwnerColor(pos)">
+        </app-board-cell>
+      </div>
+
+      <!-- Center area -->
+      <div class="board-center">
+        <ng-content></ng-content>
+      </div>
+
+      <!-- Right column (positions 11-19) -->
+      <div class="board-column board-column-right">
+        <app-board-cell 
+          *ngFor="let pos of getRightCells(); trackBy: trackByPosition"
+          [cell]="getBoardCell(pos)!"
+          [isCorner]="isCorner(pos)"
+          [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
+          [hasPlayers]="getCellPlayerColors(pos).length > 0"
+          [borderStyle]="getCellBorderStyle(pos)"
+          [position]="pos"
+          [rowType]="'right'"
+          [currentPlayerColor]="currentPlayerColor"
+          [currentTurnUsername]="currentTurnUsername"
+          [ownerColor]="getOwnerColor(pos)">
+        </app-board-cell>
+      </div>
+    </div>
+
+    <!-- Top row (positions 30-20) -->
+    <div class="board-row board-row-top">
+      <app-board-cell 
+        *ngFor="let pos of getTopCells(); trackBy: trackByPosition"
+        [cell]="getBoardCell(pos)!"
+        [isCorner]="isCorner(pos)"
+        [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
+        [hasPlayers]="getCellPlayerColors(pos).length > 0"
+        [borderStyle]="getCellBorderStyle(pos)"
+        [position]="pos"
+        [rowType]="'top'"
+        [currentPlayerColor]="currentPlayerColor"
+        [currentTurnUsername]="currentTurnUsername"
+        [ownerColor]="getOwnerColor(pos)">
+      </app-board-cell>
+    </div>
+
+  </div>
+
+  <div *ngIf="boardCells.length === 0" class="no-board">
+    <p>No board cells found</p>
+  </div>
+</div>
