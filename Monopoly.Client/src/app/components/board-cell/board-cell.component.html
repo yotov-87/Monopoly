@@ -3,17 +3,8 @@
      [class.corner]="isCorner"
      [class.has-current-player]="isCurrentPlayer"
      [class.has-players]="hasPlayers"
-     [class.has-color-border]="cell.colorGroup"
      [ngStyle]="borderStyle"
-  [style.border-bottom-color]="rowType === 'bottom' && getColorGroupBorderColor() ? getColorGroupBorderColor() : null"
-  [style.border-bottom-width]="rowType === 'bottom' && getColorGroupBorderColor() ? '18px' : null"
-  [style.border-top-color]="rowType === 'top' && getColorGroupBorderColor() ? getColorGroupBorderColor() : null"
-  [style.border-top-width]="rowType === 'top' && getColorGroupBorderColor() ? '18px' : null"
-  [style.border-left-color]="rowType === 'right' && getColorGroupBorderColor() ? getColorGroupBorderColor() : null"
-  [style.border-left-width]="rowType === 'right' && getColorGroupBorderColor() ? '18px' : null"
-  [style.border-right-color]="rowType === 'left' && getColorGroupBorderColor() ? getColorGroupBorderColor() : null"
-  [style.border-right-width]="rowType === 'left' && getColorGroupBorderColor() ? '18px' : null"
-  [style.--player-color]="currentPlayerColor"
+     [style.--player-color]="currentPlayerColor"
      [attr.data-position]="position">
   
   <!-- Player badges positioned opposite to color stripe -->
@@ -32,14 +23,18 @@
   </div>
 
   <div class="cell-info">
-    <div *ngIf="cell.colorGroup" 
-         class="color-stripe"
-         [ngClass]="cell.colorGroup"></div>
-    <div class="cell-position" 
-         [class.owned]="ownerColor"
-         [style.color]="ownerColor || '#666'"
-         [style.font-weight]="ownerColor ? '900' : 'bold'">
-      {{ position }}
+    <div class="cell-position-wrapper">
+      <div class="cell-position" 
+           [class.owned]="ownerColor"
+           [class.has-color-group]="cell.colorGroup"
+           [style.background-color]="getColorGroupBorderColor() || 'rgba(245, 245, 245, 0.95)'">
+        {{ position }}
+      </div>
+      <div *ngIf="ownerColor" 
+           class="owner-badge"
+           [style.background-color]="ownerColor"
+           [title]="'Owned by ' + cell.ownerUsername">
+      </div>
     </div>
     <div class="cell-name">{{ cell.name }}</div>
   </div>
