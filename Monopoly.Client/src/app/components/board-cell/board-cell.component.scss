@@ -21,6 +21,7 @@
   transition: all 0.2s ease-in-out;
   box-sizing: border-box;
   overflow: visible;
+  cursor: pointer;
 
   &:hover {
     transform: scale(1.03);

@@ -8,10 +8,14 @@ import { SignalRService } from '../services/signalr.service';
 import { Subscription } from 'rxjs';
 import { MonopolyBoardComponent } from '../components/monopoly-board/monopoly-board.component';
 import { PropertyPopupComponent } from '../components/property-popup/property-popup.component';
+import { CellInfoPopupComponent } from '../components/cell-info-popup/cell-info-popup.component';
+import { TradeOfferPopupComponent } from '../components/trade-offer-popup/trade-offer-popup.component';
+import { TradeResponsePopupComponent, TradeOffer } from '../components/trade-response-popup/trade-response-popup.component';
+import { NotificationToastComponent, Notification } from '../components/notification-toast/notification-toast.component';
 
 @Component({
   selector: 'app-playground',
-  imports: [CommonModule, FormsModule, MonopolyBoardComponent, PropertyPopupComponent],
+  imports: [CommonModule, FormsModule, MonopolyBoardComponent, PropertyPopupComponent, CellInfoPopupComponent, TradeOfferPopupComponent, TradeResponsePopupComponent, NotificationToastComponent],
   templateUrl: './playground.html',
   styleUrl: './playground.scss',
 })
@@ -40,6 +44,14 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   private readyTimerInterval: any = null;
   showPropertyPopup: boolean = false;
   currentPropertyCell: BoardCell | null = null;
+  showCellInfoPopup: boolean = false;
+  selectedCell: BoardCell | null = null;
+  showTradeOfferPopup: boolean = false;
+  tradeOfferCell: BoardCell | null = null;
+  showTradeResponsePopup: boolean = false;
+  currentTradeOffer: TradeOffer | null = null;
+  notifications: Notification[] = [];
+  private notificationIdCounter = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -199,7 +211,8 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this.signalRService.rentPaid$.subscribe(event => {
         if (event.gameId === this.gameId) {
-          console.log(`Rent paid: ${event.tenantUsername} → ${event.ownerUsername}: $${event.amount}`);
+          const monopolyInfo = event.isMonopoly ? ' 🏘️ (MONOPOLY x5!)' : '';
+          console.log(`Rent paid: ${event.tenantUsername} → ${event.ownerUsername}: $${event.amount}${monopolyInfo}`);
           
           // Update player money locally without full reload
           this.boardCells.forEach(cell => {
@@ -212,13 +225,102 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
             });
           });
 
-          // Show notification to all players
+          // Show notification to all players with monopoly indicator
           if (event.tenantUsername === this.currentUsername) {
-            alert(`💸 You paid $${event.amount} rent to ${event.ownerUsername}`);
+            this.showNotification(
+              `You paid $${event.amount} rent to ${event.ownerUsername}${monopolyInfo}`,
+              'warning',
+              '💸'
+            );
           } else if (event.ownerUsername === this.currentUsername) {
-            alert(`💰 You received $${event.amount} rent from ${event.tenantUsername}`);
+            this.showNotification(
+              `You received $${event.amount} rent from ${event.tenantUsername}${monopolyInfo}`,
+              'success',
+              '💰'
+            );
           } else {
-            alert(`💸 ${event.tenantUsername} paid $${event.amount} rent to ${event.ownerUsername}`);
+            this.showNotification(
+              `${event.tenantUsername} paid $${event.amount} rent to ${event.ownerUsername}${monopolyInfo}`,
+              'info',
+              '💸'
+            );
+          }
+        }
+      })
+    );
+
+    // Subscribe to trade proposed events
+    this.subscriptions.push(
+      this.signalRService.tradeProposed$.subscribe(event => {
+        if (event.gameId === this.gameId && event.sellerUsername === this.currentUsername) {
+          // Show trade response popup to the owner
+          this.currentTradeOffer = {
+            tradeId: event.tradeId,
+            buyerUsername: event.buyerUsername,
+            cellPosition: event.cellPosition,
+            cellName: event.cellName,
+            offeredPrice: event.offeredPrice
+          };
+          this.showTradeResponsePopup = true;
+        } else if (event.gameId === this.gameId) {
+          // Notify other players
+          console.log(`Trade offer: ${event.buyerUsername} → ${event.sellerUsername} for ${event.cellName}`);
+        }
+      })
+    );
+
+    // Subscribe to trade accepted events
+    this.subscriptions.push(
+      this.signalRService.tradeAccepted$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          console.log(`Trade accepted: ${event.cellName} → ${event.buyerUsername} for $${event.price}`);
+          
+          // Reload playground to update ownership and money
+          this.loadGame();
+          
+          // Show notifications
+          if (event.buyerUsername === this.currentUsername) {
+            this.showNotification(
+              `Trade accepted! You now own ${event.cellName} for $${event.price}`,
+              'success',
+              '✅'
+            );
+          } else if (event.sellerUsername === this.currentUsername) {
+            this.showNotification(
+              `You sold ${event.cellName} to ${event.buyerUsername} for $${event.price}`,
+              'success',
+              '✅'
+            );
+          } else {
+            this.showNotification(
+              `${event.buyerUsername} bought ${event.cellName} from ${event.sellerUsername} for $${event.price}`,
+              'info',
+              '✅'
+            );
+          }
+        }
+      })
+    );
+
+    // Subscribe to trade rejected events
+    this.subscriptions.push(
+      this.signalRService.tradeRejected$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          console.log(`Trade rejected: ${event.cellName}`);
+          
+          // Show notifications
+          if (event.buyerUsername === this.currentUsername) {
+            this.showNotification(
+              `${event.sellerUsername} rejected your offer for ${event.cellName}`,
+              'warning',
+              '❌'
+            );
+          } else if (event.sellerUsername === this.currentUsername) {
+            this.showNotification(
+              `You rejected the offer for ${event.cellName}`,
+              'info',
+              '❌'
+            );
           }
         }
       })
@@ -297,7 +399,7 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         this.game = response;
         this.newPlayerUsername = '';
         this.addingPlayer = false;
-        alert(`Player added successfully!`);
+        this.showNotification('Player added successfully!', 'success', '👥');
       },
       error: (error) => {
         console.error('Failed to add player', error);
@@ -360,7 +462,7 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
             
             if (oldPosition + this.diceTotal! >= 40) {
               console.log(`✅ Passed GO! (${oldPosition} + ${this.diceTotal} >= 40)`);
-              alert(`🎉 You passed GO! Collect $200`);
+              this.showNotification('You passed GO! Collect $200', 'success', '🎉');
             } else {
               console.log(`❌ Did not pass GO (${oldPosition} + ${this.diceTotal} < 40)`);
             }
@@ -618,7 +720,7 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         this.showPropertyPopup = false;
         this.currentPropertyCell = null;
         
-        alert(`Property purchased successfully!`);
+        this.showNotification('Property purchased successfully!', 'success', '🏠');
       },
       error: (error) => {
         console.error('Failed to purchase property', error);
@@ -630,6 +732,87 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   onClosePropertyPopup(): void {
     this.showPropertyPopup = false;
     this.currentPropertyCell = null;
+  }
+
+  onCellInfoClick(cell: BoardCell): void {
+    // Check if cell is owned by another player and current player is on turn
+    if (cell.ownerUsername && cell.ownerUsername !== this.currentUsername && cell.cellType === 1 && this.isMyTurn()) {
+      // Show trade offer popup for properties owned by others (only when on turn)
+      this.tradeOfferCell = cell;
+      this.showTradeOfferPopup = true;
+    } else if (cell.ownerUsername && cell.ownerUsername !== this.currentUsername && cell.cellType === 1 && !this.isMyTurn()) {
+      // Not your turn - show info notification
+      this.showNotification('You can only make trade offers when it\'s your turn!', 'warning', '⏳');
+    } else {
+      // Show cell info popup for other cases
+      this.selectedCell = cell;
+      this.showCellInfoPopup = true;
+    }
+  }
+
+  onCloseCellInfo(): void {
+    this.showCellInfoPopup = false;
+    this.selectedCell = null;
+  }
+
+  onMakeTradeOffer(offeredPrice: number): void {
+    if (this.gameId === null || this.tradeOfferCell === null) return;
+
+    this.gameService.proposeTrade(this.gameId, this.tradeOfferCell.id, offeredPrice).subscribe({
+      next: (response) => {
+        console.log('Trade offer sent', response);
+        this.showNotification(
+          `Trade offer sent to ${this.tradeOfferCell?.ownerUsername}!`,
+          'success',
+          '🤝'
+        );
+        this.showTradeOfferPopup = false;
+        this.tradeOfferCell = null;
+      },
+      error: (error) => {
+        console.error('Failed to send trade offer', error);
+        alert('Failed to send trade offer: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  onCloseTradeOffer(): void {
+    this.showTradeOfferPopup = false;
+    this.tradeOfferCell = null;
+  }
+
+  onAcceptTrade(): void {
+    if (this.gameId === null || this.currentTradeOffer === null) return;
+
+    this.gameService.respondToTrade(this.gameId, this.currentTradeOffer.tradeId, true).subscribe({
+      next: (playgroundInfo) => {
+        console.log('Trade accepted');
+        this.boardCells = playgroundInfo.boardCells;
+        this.game = playgroundInfo.game;
+        this.showTradeResponsePopup = false;
+        this.currentTradeOffer = null;
+      },
+      error: (error) => {
+        console.error('Failed to accept trade', error);
+        alert('Failed to accept trade: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  onRejectTrade(): void {
+    if (this.gameId === null || this.currentTradeOffer === null) return;
+
+    this.gameService.respondToTrade(this.gameId, this.currentTradeOffer.tradeId, false).subscribe({
+      next: (playgroundInfo) => {
+        console.log('Trade rejected');
+        this.showTradeResponsePopup = false;
+        this.currentTradeOffer = null;
+      },
+      error: (error) => {
+        console.error('Failed to reject trade', error);
+        alert('Failed to reject trade: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
   }
 
   getCurrentPlayerMoney(): number {
@@ -653,5 +836,19 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
 
   trackByPosition(index: number, pos: number): number {
     return pos;
+  }
+
+  showNotification(message: string, type: 'info' | 'success' | 'warning' | 'error', icon?: string): void {
+    const notification: Notification = {
+      id: ++this.notificationIdCounter,
+      message,
+      type,
+      icon
+    };
+    this.notifications.push(notification);
+  }
+
+  removeNotification(id: number): void {
+    this.notifications = this.notifications.filter(n => n.id !== id);
   }
 }

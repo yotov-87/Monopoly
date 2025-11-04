@@ -15,6 +15,7 @@ export class MonopolyBoardComponent {
   @Input() currentPlayerColor: string = '#2e7d32';
   @Input() currentTurnUsername: string = '';
   @Input() isGameInactive: boolean = false;
+  @Output() cellClick = new EventEmitter<BoardCell>();
 
   // Board configuration
   private readonly STANDARD_BOARD_SIZE = 40;
@@ -115,5 +116,12 @@ export class MonopolyBoardComponent {
    */
   trackByPosition(index: number, pos: number): number {
     return pos;
+  }
+
+  /**
+   * Handle cell click event
+   */
+  onCellClick(cell: BoardCell): void {
+    this.cellClick.emit(cell);
   }
 }

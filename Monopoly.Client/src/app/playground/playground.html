@@ -1,4 +1,10 @@
 <div class="playground-container">
+  <!-- Notification Toasts -->
+  <app-notification-toast 
+    [notifications]="notifications"
+    (remove)="removeNotification($event)">
+  </app-notification-toast>
+
   <div *ngIf="loading" class="loading">
     <p>Loading game...</p>
   </div>
@@ -102,7 +108,8 @@
       [boardCells]="boardCells"
       [currentPlayerColor]="getCurrentPlayerColor()"
       [currentTurnUsername]="game?.currentTurnUsername || ''"
-      [isGameInactive]="game?.status === 'Waiting'">
+      [isGameInactive]="game?.status === 'Waiting'"
+      (cellClick)="onCellInfoClick($event)">
       
       <!-- Center content (dice and controls) -->
       <div class="center-content">
@@ -148,4 +155,28 @@
     (purchase)="onPurchaseProperty()"
     (close)="onClosePropertyPopup()">
   </app-property-popup>
+
+  <!-- Cell Info Popup -->
+  <app-cell-info-popup
+    *ngIf="showCellInfoPopup"
+    [cell]="selectedCell"
+    (close)="onCloseCellInfo()">
+  </app-cell-info-popup>
+
+  <!-- Trade Offer Popup -->
+  <app-trade-offer-popup
+    *ngIf="showTradeOfferPopup"
+    [cell]="tradeOfferCell"
+    [playerMoney]="getCurrentPlayerMoney()"
+    (makeOffer)="onMakeTradeOffer($event)"
+    (close)="onCloseTradeOffer()">
+  </app-trade-offer-popup>
+
+  <!-- Trade Response Popup -->
+  <app-trade-response-popup
+    *ngIf="showTradeResponsePopup"
+    [tradeOffer]="currentTradeOffer"
+    (accept)="onAcceptTrade()"
+    (reject)="onRejectTrade()">
+  </app-trade-response-popup>
 </div>

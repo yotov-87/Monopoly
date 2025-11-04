@@ -14,7 +14,8 @@
         [rowType]="'bottom'"
         [currentPlayerColor]="currentPlayerColor"
         [currentTurnUsername]="currentTurnUsername"
-        [ownerColor]="getOwnerColor(pos)">
+        [ownerColor]="getOwnerColor(pos)"
+        (cellClick)="onCellClick($event)">
       </app-board-cell>
     </div>
 
@@ -34,7 +35,8 @@
           [rowType]="'left'"
           [currentPlayerColor]="currentPlayerColor"
           [currentTurnUsername]="currentTurnUsername"
-          [ownerColor]="getOwnerColor(pos)">
+          [ownerColor]="getOwnerColor(pos)"
+          (cellClick)="onCellClick($event)">
         </app-board-cell>
       </div>
 
@@ -56,7 +58,8 @@
           [rowType]="'right'"
           [currentPlayerColor]="currentPlayerColor"
           [currentTurnUsername]="currentTurnUsername"
-          [ownerColor]="getOwnerColor(pos)">
+          [ownerColor]="getOwnerColor(pos)"
+          (cellClick)="onCellClick($event)">
         </app-board-cell>
       </div>
     </div>
@@ -74,7 +77,8 @@
         [rowType]="'top'"
         [currentPlayerColor]="currentPlayerColor"
         [currentTurnUsername]="currentTurnUsername"
-        [ownerColor]="getOwnerColor(pos)">
+        [ownerColor]="getOwnerColor(pos)"
+        (cellClick)="onCellClick($event)">
       </app-board-cell>
     </div>
 

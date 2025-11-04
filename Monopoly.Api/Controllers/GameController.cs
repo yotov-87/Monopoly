@@ -268,4 +268,58 @@ public class GameController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    [HttpPost("{gameId}/propose-trade/{cellId}")]
+    public async Task<IActionResult> ProposeTrade(int gameId, int cellId, [FromBody] ProposeTradeRequest request)
+    {
+        // Get user ID from JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Unauthorized(new { message = "Invalid token." });
+        }
+
+        try
+        {
+            var tradeId = await _gameService.ProposeTradeAsync(gameId, userId, cellId, request.OfferedPrice);
+
+            if (tradeId == null)
+            {
+                return NotFound(new { message = "Failed to create trade offer." });
+            }
+
+            return Ok(new { tradeId, message = "Trade offer sent successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [HttpPost("{gameId}/respond-trade/{tradeId}")]
+    public async Task<IActionResult> RespondToTrade(int gameId, int tradeId, [FromBody] RespondTradeRequest request)
+    {
+        // Get user ID from JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Unauthorized(new { message = "Invalid token." });
+        }
+
+        try
+        {
+            var playgroundInfo = await _gameService.RespondToTradeAsync(gameId, userId, tradeId, request.Accept);
+
+            if (playgroundInfo == null)
+            {
+                return NotFound(new { message = "Trade or game not found." });
+            }
+
+            return Ok(playgroundInfo);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

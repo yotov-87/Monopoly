@@ -735,7 +735,7 @@ public class GameService : IGameService
 
     public async Task<PlaygroundInfoResponse?> PayRentAsync(int gameId, int userId, int cellId)
     {
-        const int RENT_AMOUNT = 100; // Default rent for all properties
+        const int BASE_RENT_AMOUNT = 100; // Base rent for properties
 
         var game = await _dbContext.Games
             .Include(g => g.GameBoard!)
@@ -800,8 +800,28 @@ public class GameService : IGameService
             throw new InvalidOperationException("Owner state not found");
         }
 
+        // Calculate rent: check if owner has monopoly (all properties of same color)
+        int rentAmount = BASE_RENT_AMOUNT;
+        
+        if (!string.IsNullOrEmpty(cell.ColorGroup))
+        {
+            // Get all properties in the same color group
+            var propertiesInGroup = game.GameBoard?.BoardCells
+                .Where(c => c.CellType == CellType.Property && c.ColorGroup == cell.ColorGroup)
+                .ToList() ?? new List<BoardCell>();
+
+            // Check if owner owns all properties in this color group
+            var ownerOwnsAll = propertiesInGroup.All(c => c.OwnerId == ownerPlayer.Id);
+
+            if (ownerOwnsAll && propertiesInGroup.Count > 0)
+            {
+                // Monopoly! Rent is 5x
+                rentAmount = BASE_RENT_AMOUNT * 5;
+            }
+        }
+
         // Check if tenant has enough money
-        if (tenantState.Money < RENT_AMOUNT)
+        if (tenantState.Money < rentAmount)
         {
             throw new InvalidOperationException("Not enough money to pay rent");
         }
@@ -813,8 +833,8 @@ public class GameService : IGameService
         }
 
         // Transfer rent
-        tenantState.Money -= RENT_AMOUNT;
-        ownerState.Money += RENT_AMOUNT;
+        tenantState.Money -= rentAmount;
+        ownerState.Money += rentAmount;
 
         await _dbContext.SaveChangesAsync();
 
@@ -825,8 +845,228 @@ public class GameService : IGameService
             CellId = cellId,
             TenantUsername = tenantPlayer.User.Username,
             OwnerUsername = ownerPlayer.User.Username,
-            Amount = RENT_AMOUNT
+            Amount = rentAmount,
+            IsMonopoly = rentAmount > BASE_RENT_AMOUNT
         });
+
+        // Return updated playground info
+        return await GetPlaygroundInfoAsync(gameId, userId);
+    }
+
+    public async Task<int?> ProposeTradeAsync(int gameId, int userId, int cellId, int offeredPrice)
+    {
+        var game = await _dbContext.Games
+            .Include(g => g.GameBoard!)
+                .ThenInclude(gb => gb.BoardCells)
+            .Include(g => g.GamePlayers)
+                .ThenInclude(gp => gp.User)
+            .Include(g => g.PlayerStates)
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null)
+        {
+            throw new InvalidOperationException("Game not found");
+        }
+
+        // Find buyer player
+        var buyerPlayer = game.GamePlayers.FirstOrDefault(gp => gp.UserId == userId);
+        if (buyerPlayer == null)
+        {
+            throw new InvalidOperationException("Player not in game");
+        }
+
+        var buyerState = game.PlayerStates.FirstOrDefault(ps => ps.UserId == userId);
+        if (buyerState == null)
+        {
+            throw new InvalidOperationException("Player state not found");
+        }
+
+        // Find the cell
+        var cell = game.GameBoard?.BoardCells.FirstOrDefault(c => c.Id == cellId);
+        if (cell == null)
+        {
+            throw new InvalidOperationException("Cell not found");
+        }
+
+        // Validate trade conditions
+        if (cell.CellType != CellType.Property)
+        {
+            throw new InvalidOperationException("This cell is not a property");
+        }
+
+        if (!cell.OwnerId.HasValue)
+        {
+            throw new InvalidOperationException("Property is not owned");
+        }
+
+        // Find the owner
+        var sellerPlayer = game.GamePlayers.FirstOrDefault(gp => gp.Id == cell.OwnerId.Value);
+        if (sellerPlayer == null)
+        {
+            throw new InvalidOperationException("Owner not found");
+        }
+
+        // Cannot trade with yourself
+        if (sellerPlayer.UserId == userId)
+        {
+            throw new InvalidOperationException("Cannot trade with yourself");
+        }
+
+        // Check if buyer has enough money
+        if (buyerState.Money < offeredPrice)
+        {
+            throw new InvalidOperationException("Not enough money for this offer");
+        }
+
+        // Check for existing pending trades for this property
+        var existingTrade = await _dbContext.PropertyTrades
+            .FirstOrDefaultAsync(pt => pt.GameId == gameId 
+                && pt.CellPosition == cell.Position 
+                && pt.Status == TradeStatus.Pending);
+
+        if (existingTrade != null)
+        {
+            throw new InvalidOperationException("There is already a pending trade for this property");
+        }
+
+        // Create trade offer
+        var trade = new PropertyTrade
+        {
+            GameId = gameId,
+            CellPosition = cell.Position,
+            BuyerPlayerId = buyerPlayer.Id,
+            SellerPlayerId = sellerPlayer.Id,
+            OfferedPrice = offeredPrice,
+            Status = TradeStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.PropertyTrades.Add(trade);
+        await _dbContext.SaveChangesAsync();
+
+        // Broadcast trade proposal to owner
+        await _hubContext.Clients.Group($"game_{gameId}").SendAsync("TradeProposed", new
+        {
+            TradeId = trade.Id,
+            GameId = gameId,
+            BuyerUsername = buyerPlayer.User.Username,
+            SellerUsername = sellerPlayer.User.Username,
+            CellPosition = cell.Position,
+            CellName = cell.Name,
+            OfferedPrice = offeredPrice
+        });
+
+        return trade.Id;
+    }
+
+    public async Task<PlaygroundInfoResponse?> RespondToTradeAsync(int gameId, int userId, int tradeId, bool accept)
+    {
+        var trade = await _dbContext.PropertyTrades
+            .Include(t => t.BuyerPlayer)
+                .ThenInclude(bp => bp.User)
+            .Include(t => t.SellerPlayer)
+                .ThenInclude(sp => sp.User)
+            .FirstOrDefaultAsync(t => t.Id == tradeId && t.GameId == gameId);
+
+        if (trade == null)
+        {
+            throw new InvalidOperationException("Trade not found");
+        }
+
+        // Verify the user is the seller
+        if (trade.SellerPlayer.UserId != userId)
+        {
+            throw new InvalidOperationException("Only the property owner can respond to this trade");
+        }
+
+        // Check if trade is still pending
+        if (trade.Status != TradeStatus.Pending)
+        {
+            throw new InvalidOperationException("Trade has already been responded to");
+        }
+
+        var game = await _dbContext.Games
+            .Include(g => g.GameBoard!)
+                .ThenInclude(gb => gb.BoardCells)
+            .Include(g => g.PlayerStates)
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null)
+        {
+            throw new InvalidOperationException("Game not found");
+        }
+
+        // Find the cell
+        var cell = game.GameBoard?.BoardCells.FirstOrDefault(c => c.Position == trade.CellPosition);
+        if (cell == null)
+        {
+            throw new InvalidOperationException("Cell not found");
+        }
+
+        if (accept)
+        {
+            // Verify ownership hasn't changed
+            if (cell.OwnerId != trade.SellerPlayer.Id)
+            {
+                throw new InvalidOperationException("Property ownership has changed");
+            }
+
+            // Find player states
+            var buyerState = game.PlayerStates.FirstOrDefault(ps => ps.UserId == trade.BuyerPlayer.UserId);
+            var sellerState = game.PlayerStates.FirstOrDefault(ps => ps.UserId == trade.SellerPlayer.UserId);
+
+            if (buyerState == null || sellerState == null)
+            {
+                throw new InvalidOperationException("Player states not found");
+            }
+
+            // Verify buyer still has enough money
+            if (buyerState.Money < trade.OfferedPrice)
+            {
+                throw new InvalidOperationException("Buyer no longer has enough money");
+            }
+
+            // Execute trade: transfer ownership and money
+            cell.OwnerId = trade.BuyerPlayer.Id;
+            buyerState.Money -= trade.OfferedPrice;
+            sellerState.Money += trade.OfferedPrice;
+
+            trade.Status = TradeStatus.Accepted;
+            trade.RespondedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+
+            // Broadcast trade accepted
+            await _hubContext.Clients.Group($"game_{gameId}").SendAsync("TradeAccepted", new
+            {
+                TradeId = trade.Id,
+                GameId = gameId,
+                BuyerUsername = trade.BuyerPlayer.User.Username,
+                SellerUsername = trade.SellerPlayer.User.Username,
+                CellPosition = cell.Position,
+                CellName = cell.Name,
+                Price = trade.OfferedPrice
+            });
+        }
+        else
+        {
+            // Trade rejected
+            trade.Status = TradeStatus.Rejected;
+            trade.RespondedAt = DateTime.UtcNow;
+
+            await _dbContext.SaveChangesAsync();
+
+            // Broadcast trade rejected
+            await _hubContext.Clients.Group($"game_{gameId}").SendAsync("TradeRejected", new
+            {
+                TradeId = trade.Id,
+                GameId = gameId,
+                BuyerUsername = trade.BuyerPlayer.User.Username,
+                SellerUsername = trade.SellerPlayer.User.Username,
+                CellPosition = cell.Position,
+                CellName = cell.Name
+            });
+        }
 
         // Return updated playground info
         return await GetPlaygroundInfoAsync(gameId, userId);

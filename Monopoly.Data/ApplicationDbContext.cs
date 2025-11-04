@@ -16,6 +16,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<GameBoard> GameBoards { get; set; }
     public DbSet<BoardCell> BoardCells { get; set; }
     public DbSet<PlayerState> PlayerStates { get; set; }
+    public DbSet<PropertyTrade> PropertyTrades { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,6 +102,31 @@ public class ApplicationDbContext : DbContext
             
             // Ensure unique position per board
             entity.HasIndex(e => new { e.GameBoardId, e.Position }).IsUnique();
+        });
+
+        modelBuilder.Entity<PropertyTrade>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.GameId).IsRequired();
+            entity.Property(e => e.CellPosition).IsRequired();
+            entity.Property(e => e.OfferedPrice).IsRequired();
+            entity.Property(e => e.Status).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            
+            entity.HasOne(e => e.Game)
+                .WithMany()
+                .HasForeignKey(e => e.GameId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.BuyerPlayer)
+                .WithMany()
+                .HasForeignKey(e => e.BuyerPlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasOne(e => e.SellerPlayer)
+                .WithMany()
+                .HasForeignKey(e => e.SellerPlayerId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

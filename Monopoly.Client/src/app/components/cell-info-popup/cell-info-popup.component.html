@@ -1,0 +1,70 @@
+<div class="popup-overlay" *ngIf="cell" (click)="onOverlayClick($event)">
+  <div class="popup-modal">
+    <button class="close-btn" (click)="onClose()">&times;</button>
+    
+    <div class="cell-header" [style.background-color]="cell.cellType === 1 ? getNeighborhoodColor(cell.name) : '#333'">
+      <h2>{{ cell.name }}</h2>
+      <span class="cell-type">{{ getCellTypeName(cell.cellType) }}</span>
+    </div>
+
+    <div class="cell-body">
+      <!-- Position Info -->
+      <div class="info-section">
+        <div class="info-label">Position:</div>
+        <div class="info-value">#{{ cell.position }}</div>
+      </div>
+
+      <!-- Price Info (for properties) -->
+      <div class="info-section" *ngIf="cell.cellType === 1 && cell.price">
+        <div class="info-label">Price:</div>
+        <div class="info-value price">${{ cell.price }}</div>
+      </div>
+
+      <!-- Owner Info -->
+      <div class="info-section" *ngIf="cell.cellType === 1">
+        <div class="info-label">Owner:</div>
+        <div class="info-value" *ngIf="cell.ownerUsername">
+          <span class="owner-name">{{ cell.ownerUsername }}</span>
+        </div>
+        <div class="info-value unowned" *ngIf="!cell.ownerUsername">
+          <span class="unowned-text">Unowned</span>
+        </div>
+      </div>
+
+      <!-- Players Here -->
+      <div class="info-section" *ngIf="cell.playersHere && cell.playersHere.length > 0">
+        <div class="info-label">Players Here:</div>
+        <div class="players-list">
+          <div class="player-item" *ngFor="let player of cell.playersHere">
+            <span class="player-badge" [style.background-color]="player.color">
+              {{ player.username.substring(0, 2).toUpperCase() }}
+            </span>
+            <span class="player-name">{{ player.username }}</span>
+            <span class="player-money">${{ player.money }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Cell -->
+      <div class="info-section" *ngIf="!cell.playersHere || cell.playersHere.length === 0">
+        <div class="info-label">Players:</div>
+        <div class="info-value empty">No players on this cell</div>
+      </div>
+
+      <!-- Description for special cells -->
+      <div class="info-section description" *ngIf="cell.cellType !== 1">
+        <div class="info-description">
+          <span *ngIf="cell.cellType === 0">Collect $200 when you pass or land here!</span>
+          <span *ngIf="cell.cellType === 2">Pay the tax amount when landing here.</span>
+          <span *ngIf="cell.cellType === 3">Draw a Chance card.</span>
+          <span *ngIf="cell.cellType === 4">Draw a Community Chest card.</span>
+          <span *ngIf="cell.cellType === 5">Just visiting or in jail.</span>
+          <span *ngIf="cell.cellType === 6">Free parking - no action required.</span>
+          <span *ngIf="cell.cellType === 7">Go directly to jail. Do not pass GO.</span>
+          <span *ngIf="cell.cellType === 8">Utility - pay rent based on dice roll.</span>
+          <span *ngIf="cell.cellType === 9">Railroad - pay rent to owner.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

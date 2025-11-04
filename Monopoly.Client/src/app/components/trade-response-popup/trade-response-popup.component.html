@@ -1,0 +1,44 @@
+<div class="popup-overlay">
+  <div class="popup-modal">
+    <div class="trade-header" [style.background-color]="getNeighborhoodColor(tradeOffer?.cellName || '')">
+      <h2>🤝 Trade Offer Received</h2>
+    </div>
+    
+    <div class="trade-body">
+      <div class="offer-info">
+        <div class="buyer-section">
+          <p class="label">From:</p>
+          <p class="buyer-name">{{ tradeOffer?.buyerUsername }}</p>
+        </div>
+
+        <div class="property-section">
+          <p class="label">Property:</p>
+          <p class="property-name">{{ tradeOffer?.cellName }}</p>
+          <p class="position-info">Position {{ tradeOffer?.cellPosition }}</p>
+        </div>
+
+        <div class="price-section">
+          <p class="label">Offered Amount:</p>
+          <p class="offered-price">${{ tradeOffer?.offeredPrice }}</p>
+        </div>
+      </div>
+
+      <div class="decision-section">
+        <p class="decision-prompt">Do you want to sell this property?</p>
+        
+        <div class="trade-actions">
+          <button class="btn-accept" (click)="onAccept()">
+            ✅ Accept Offer
+          </button>
+          <button class="btn-reject" (click)="onReject()">
+            ❌ Reject Offer
+          </button>
+        </div>
+      </div>
+
+      <div class="trade-warning">
+        <p>⚠️ If you accept, ownership will transfer immediately and you will receive the offered amount.</p>
+      </div>
+    </div>
+  </div>
+</div>

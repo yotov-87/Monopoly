@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BoardCell } from '../../services/game.service';
 
@@ -20,6 +20,8 @@ export class BoardCellComponent {
   @Input() currentPlayerColor: string = '#2e7d32';
   @Input() currentTurnUsername: string = '';
   @Input() ownerColor: string | null = null;
+  
+  @Output() cellClick = new EventEmitter<BoardCell>();
 
   isPlayerCurrentTurn(playerUsername: string): boolean {
     return this.currentTurnUsername === playerUsername;
@@ -40,5 +42,9 @@ export class BoardCellComponent {
     };
     
     return colorMap[this.cell.colorGroup] || null;
+  }
+
+  onCellClick(): void {
+    this.cellClick.emit(this.cell);
   }
 }

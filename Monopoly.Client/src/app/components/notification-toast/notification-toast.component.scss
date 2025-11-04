@@ -1,0 +1,191 @@
+.notification-container {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 400px;
+  pointer-events: none;
+}
+
+.notification-toast {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 300px;
+  max-width: 400px;
+  pointer-events: all;
+  animation: slideInRight 0.3s ease-out, fadeIn 0.3s ease-out;
+  border-left: 4px solid #2196F3;
+  transition: transform 0.2s, opacity 0.2s;
+
+  &:hover {
+    transform: translateX(-4px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.notification-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.notification-message {
+  font-size: 15px;
+  color: #333;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &:hover {
+    background: #f0f0f0;
+    color: #333;
+  }
+}
+
+// Type-specific styles
+.notification-toast.info {
+  border-left-color: #2196F3;
+  
+  .notification-icon {
+    color: #2196F3;
+  }
+}
+
+.notification-toast.success {
+  border-left-color: #4CAF50;
+  
+  .notification-icon {
+    color: #4CAF50;
+  }
+}
+
+.notification-toast.warning {
+  border-left-color: #FF9800;
+  
+  .notification-icon {
+    color: #FF9800;
+  }
+}
+
+.notification-toast.error {
+  border-left-color: #f44336;
+  
+  .notification-icon {
+    color: #f44336;
+  }
+}
+
+// Animations
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Mobile responsiveness
+@media (max-width: 768px) {
+  .notification-container {
+    top: 70px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+
+  .notification-toast {
+    min-width: auto;
+    max-width: none;
+    width: 100%;
+  }
+
+  .notification-message {
+    font-size: 14px;
+  }
+}
+
+// Progress bar for auto-dismiss
+.notification-toast::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    rgba(33, 150, 243, 0.8) 0%, 
+    rgba(33, 150, 243, 0.4) 100%);
+  animation: progressBar 10s linear;
+  border-radius: 0 0 0 12px;
+}
+
+.notification-toast.success::after {
+  background: linear-gradient(90deg, 
+    rgba(76, 175, 80, 0.8) 0%, 
+    rgba(76, 175, 80, 0.4) 100%);
+}
+
+.notification-toast.warning::after {
+  background: linear-gradient(90deg, 
+    rgba(255, 152, 0, 0.8) 0%, 
+    rgba(255, 152, 0, 0.4) 100%);
+}
+
+.notification-toast.error::after {
+  background: linear-gradient(90deg, 
+    rgba(244, 67, 54, 0.8) 0%, 
+    rgba(244, 67, 54, 0.4) 100%);
+}
+
+@keyframes progressBar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}

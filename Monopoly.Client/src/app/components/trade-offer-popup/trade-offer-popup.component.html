@@ -1,0 +1,55 @@
+<div class="popup-overlay" (click)="onOverlayClick($event)">
+  <div class="popup-modal">
+    <button class="close-btn" (click)="onClose()">&times;</button>
+    
+    <div class="trade-header" [style.background-color]="getNeighborhoodColor(cell?.name || '')">
+      <h2>Make Trade Offer</h2>
+    </div>
+    
+    <div class="trade-body">
+      <div class="property-info">
+        <h3>{{ cell?.name }}</h3>
+        <p class="owner-info">
+          <strong>Current Owner:</strong> {{ cell?.ownerUsername }}
+        </p>
+        <p class="price-info">
+          <strong>Original Price:</strong> ${{ cell?.price }}
+        </p>
+      </div>
+
+      <div class="offer-section">
+        <label for="offered-price">Your Offer:</label>
+        <div class="price-input-group">
+          <span class="currency-symbol">$</span>
+          <input 
+            type="number" 
+            id="offered-price"
+            [(ngModel)]="offeredPrice"
+            min="1"
+            [max]="playerMoney"
+            placeholder="Enter amount"
+            class="price-input"
+          />
+        </div>
+        <p class="balance-info">Your Balance: ${{ playerMoney }}</p>
+      </div>
+
+      <div class="trade-actions">
+        <button 
+          class="btn-offer" 
+          (click)="onMakeOffer()"
+          [disabled]="!canAfford()"
+        >
+          Make Offer
+        </button>
+        <button class="btn-cancel" (click)="onClose()">
+          Cancel
+        </button>
+      </div>
+
+      <div class="trade-note">
+        <p>⚠️ The property owner will receive your offer and can accept or reject it.</p>
+      </div>
+    </div>
+  </div>
+</div>

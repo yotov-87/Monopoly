@@ -48,6 +48,36 @@ export interface RentPaidEvent {
   tenantUsername: string;
   ownerUsername: string;
   amount: number;
+  isMonopoly: boolean;
+}
+
+export interface TradeProposedEvent {
+  tradeId: number;
+  gameId: number;
+  buyerUsername: string;
+  sellerUsername: string;
+  cellPosition: number;
+  cellName: string;
+  offeredPrice: number;
+}
+
+export interface TradeAcceptedEvent {
+  tradeId: number;
+  gameId: number;
+  buyerUsername: string;
+  sellerUsername: string;
+  cellPosition: number;
+  cellName: string;
+  price: number;
+}
+
+export interface TradeRejectedEvent {
+  tradeId: number;
+  gameId: number;
+  buyerUsername: string;
+  sellerUsername: string;
+  cellPosition: number;
+  cellName: string;
 }
 
 export interface PlayerPositionUpdate {
@@ -69,6 +99,9 @@ export class SignalRService {
   public gameStarted$ = new Subject<GameStartedEvent>();
   public playerJoined$ = new Subject<PlayerJoinedEvent>();
   public rentPaid$ = new Subject<RentPaidEvent>();
+  public tradeProposed$ = new Subject<TradeProposedEvent>();
+  public tradeAccepted$ = new Subject<TradeAcceptedEvent>();
+  public tradeRejected$ = new Subject<TradeRejectedEvent>();
   public playerPositions$ = new BehaviorSubject<Map<string, number>>(new Map());
 
   constructor(private authService: AuthService) {}
@@ -158,6 +191,18 @@ export class SignalRService {
 
     this.hubConnection.on('RentPaid', (event: RentPaidEvent) => {
       this.rentPaid$.next(event);
+    });
+
+    this.hubConnection.on('TradeProposed', (event: TradeProposedEvent) => {
+      this.tradeProposed$.next(event);
+    });
+
+    this.hubConnection.on('TradeAccepted', (event: TradeAcceptedEvent) => {
+      this.tradeAccepted$.next(event);
+    });
+
+    this.hubConnection.on('TradeRejected', (event: TradeRejectedEvent) => {
+      this.tradeRejected$.next(event);
     });
   }
 }

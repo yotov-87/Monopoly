@@ -106,4 +106,18 @@ export class GameService {
   payRent(gameId: number, cellId: number): Observable<PlaygroundInfo> {
     return this.http.post<PlaygroundInfo>(`${this.apiUrl}/${gameId}/pay-rent/${cellId}`, {});
   }
+
+  proposeTrade(gameId: number, cellId: number, offeredPrice: number): Observable<{ tradeId: number, message: string }> {
+    return this.http.post<{ tradeId: number, message: string }>(
+      `${this.apiUrl}/${gameId}/propose-trade/${cellId}`, 
+      { offeredPrice }
+    );
+  }
+
+  respondToTrade(gameId: number, tradeId: number, accept: boolean): Observable<PlaygroundInfo> {
+    return this.http.post<PlaygroundInfo>(
+      `${this.apiUrl}/${gameId}/respond-trade/${tradeId}`, 
+      { accept }
+    );
+  }
 }
