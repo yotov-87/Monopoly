@@ -31,6 +31,8 @@ export interface BoardCell {
   cellTypeName: string;
   name: string;
   colorGroup?: string;
+  price?: number;
+  ownerUsername?: string;
   playersHere: PlayerPosition[];
 }
 
@@ -95,5 +97,9 @@ export class GameService {
 
   setPlayerReady(gameId: number, isReady: boolean): Observable<any> {
     return this.http.post(`${this.apiUrl}/${gameId}/ready`, { isReady });
+  }
+
+  purchaseProperty(gameId: number, cellId: number): Observable<PlaygroundInfo> {
+    return this.http.post<PlaygroundInfo>(`${this.apiUrl}/${gameId}/purchase-property/${cellId}`, {});
   }
 }

@@ -34,7 +34,12 @@
     <div *ngIf="cell.colorGroup" 
          class="color-stripe"
          [ngClass]="cell.colorGroup"></div>
-    <div class="cell-position">{{ position }}</div>
+    <div class="cell-position" 
+         [class.owned]="ownerColor"
+         [style.color]="ownerColor || '#666'"
+         [style.font-weight]="ownerColor ? '900' : 'bold'">
+      {{ position }}
+    </div>
     <div class="cell-name">{{ cell.name }}</div>
   </div>
 </div>

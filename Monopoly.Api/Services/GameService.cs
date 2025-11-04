@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using Monopoly.Core.DTOs;
 using Monopoly.Core.Entities;
+using Monopoly.Core.Enums;
 using Monopoly.Core.Interfaces;
 using Monopoly.Data;
 using Monopoly.Hubs;
@@ -377,6 +378,10 @@ public class GameService : IGameService
                 CellTypeName = bc.CellType.ToString(),
                 Name = bc.Name,
                 ColorGroup = bc.ColorGroup,
+                Price = bc.Price,
+                OwnerUsername = bc.OwnerId.HasValue 
+                    ? game.GamePlayers.FirstOrDefault(gp => gp.Id == bc.OwnerId.Value)?.User.Username 
+                    : null,
                 PlayersHere = game.PlayerStates
                     .Where(ps => ps.Position == bc.Position)
                     .Select(ps => new PlayerPositionDto
@@ -645,4 +650,87 @@ public class GameService : IGameService
 
         return true;
     }
+
+    public async Task<PlaygroundInfoResponse?> PurchasePropertyAsync(int gameId, int userId, int cellId)
+    {
+        var game = await _dbContext.Games
+            .Include(g => g.GameBoard!)
+                .ThenInclude(gb => gb.BoardCells)
+            .Include(g => g.GamePlayers)
+                .ThenInclude(gp => gp.User)
+            .Include(g => g.PlayerStates)
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null)
+        {
+            throw new InvalidOperationException("Game not found");
+        }
+
+        // Find the player
+        var gamePlayer = game.GamePlayers.FirstOrDefault(gp => gp.UserId == userId);
+        if (gamePlayer == null)
+        {
+            throw new InvalidOperationException("Player not in game");
+        }
+
+        // Find player state
+        var playerState = game.PlayerStates.FirstOrDefault(ps => ps.UserId == userId);
+        if (playerState == null)
+        {
+            throw new InvalidOperationException("Player state not found");
+        }
+
+        // Find the cell
+        var cell = game.GameBoard?.BoardCells.FirstOrDefault(c => c.Id == cellId);
+        if (cell == null)
+        {
+            throw new InvalidOperationException("Cell not found");
+        }
+
+        // Validate purchase conditions
+        if (cell.CellType != CellType.Property)
+        {
+            throw new InvalidOperationException("This cell is not a property");
+        }
+
+        if (cell.OwnerId.HasValue)
+        {
+            throw new InvalidOperationException("Property already owned");
+        }
+
+        if (!cell.Price.HasValue)
+        {
+            throw new InvalidOperationException("Property has no price");
+        }
+
+        if (playerState.Money < cell.Price.Value)
+        {
+            throw new InvalidOperationException("Not enough money");
+        }
+
+        // Check if player is on this cell
+        if (playerState.Position != cell.Position)
+        {
+            throw new InvalidOperationException("Player not on this cell");
+        }
+
+        // Purchase the property
+        cell.OwnerId = gamePlayer.Id;
+        playerState.Money -= cell.Price.Value;
+
+        await _dbContext.SaveChangesAsync();
+
+        // Broadcast property purchased event
+        await _hubContext.Clients.Group($"game_{gameId}").SendAsync("PropertyPurchased", new
+        {
+            GameId = gameId,
+            CellId = cellId,
+            OwnerUsername = gamePlayer.User.Username,
+            Price = cell.Price.Value
+        });
+
+                // Return updated playground info
+        return await GetPlaygroundInfoAsync(gameId, userId);
+    }
 }
+

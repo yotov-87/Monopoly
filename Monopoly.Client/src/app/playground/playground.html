@@ -104,7 +104,7 @@
         <div class="monopoly-board" *ngIf="boardCells.length > 0">
         <!-- Bottom row (positions 0-10) -->
         <div class="board-row bottom-row">
-          <app-board-cell *ngFor="let pos of [0,1,2,3,4,5,6,7,8,9,10]"
+          <app-board-cell *ngFor="let pos of [0,1,2,3,4,5,6,7,8,9,10]; trackBy: trackByPosition"
                           [cell]="getBoardCell(pos)!"
                           [isCorner]="pos === 0 || pos === 10"
                           [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
@@ -113,7 +113,8 @@
                           [position]="pos"
                           [rowType]="'bottom'"
                           [currentPlayerColor]="getCurrentPlayerColor()"
-                          [currentTurnUsername]="game?.currentTurnUsername || ''">
+                          [currentTurnUsername]="game?.currentTurnUsername || ''"
+                          [ownerColor]="getOwnerColor(pos)">
           </app-board-cell>
         </div>
 
@@ -121,7 +122,7 @@
         <div class="board-middle">
           <!-- Left column (positions 39-31, from top to bottom) -->
           <div class="board-column left-column">
-            <app-board-cell *ngFor="let pos of [39,38,37,36,35,34,33,32,31]"
+            <app-board-cell *ngFor="let pos of [39,38,37,36,35,34,33,32,31]; trackBy: trackByPosition"
                             [cell]="getBoardCell(pos)!"
                             [isCorner]="false"
                             [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
@@ -130,7 +131,8 @@
                             [position]="pos"
                             [rowType]="'left'"
                             [currentPlayerColor]="getCurrentPlayerColor()"
-                            [currentTurnUsername]="game?.currentTurnUsername || ''">
+                            [currentTurnUsername]="game?.currentTurnUsername || ''"
+                            [ownerColor]="getOwnerColor(pos)">
             </app-board-cell>
           </div>
 
@@ -170,7 +172,7 @@
 
           <!-- Right column (positions 11-19) -->
           <div class="board-column right-column">
-            <app-board-cell *ngFor="let pos of [11,12,13,14,15,16,17,18,19]"
+            <app-board-cell *ngFor="let pos of [11,12,13,14,15,16,17,18,19]; trackBy: trackByPosition"
                             [cell]="getBoardCell(pos)!"
                             [isCorner]="false"
                             [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
@@ -179,14 +181,15 @@
                             [position]="pos"
                             [rowType]="'right'"
                             [currentPlayerColor]="getCurrentPlayerColor()"
-                            [currentTurnUsername]="game?.currentTurnUsername || ''">
+                            [currentTurnUsername]="game?.currentTurnUsername || ''"
+                            [ownerColor]="getOwnerColor(pos)">
             </app-board-cell>
           </div>
         </div>
 
         <!-- Top row (positions 30-20, from right to left) -->
         <div class="board-row top-row">
-          <app-board-cell *ngFor="let pos of [30,29,28,27,26,25,24,23,22,21,20]"
+          <app-board-cell *ngFor="let pos of [30,29,28,27,26,25,24,23,22,21,20]; trackBy: trackByPosition"
                           [cell]="getBoardCell(pos)!"
                           [isCorner]="pos === 20 || pos === 30"
                           [isCurrentPlayer]="cellHasCurrentPlayer(pos)"
@@ -195,7 +198,8 @@
                           [position]="pos"
                           [rowType]="'top'"
                           [currentPlayerColor]="getCurrentPlayerColor()"
-                          [currentTurnUsername]="game?.currentTurnUsername || ''">
+                          [currentTurnUsername]="game?.currentTurnUsername || ''"
+                          [ownerColor]="getOwnerColor(pos)">
           </app-board-cell>
         </div>
       </div>
@@ -206,4 +210,13 @@
       </div>
     </div>
   </div>
+
+  <!-- Property Purchase Popup -->
+  <app-property-popup
+    *ngIf="showPropertyPopup"
+    [cell]="currentPropertyCell"
+    [playerMoney]="getCurrentPlayerMoney()"
+    (purchase)="onPurchaseProperty()"
+    (close)="onClosePropertyPopup()">
+  </app-property-popup>
 </div>

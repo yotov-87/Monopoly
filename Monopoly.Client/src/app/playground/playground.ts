@@ -7,10 +7,11 @@ import { AuthService } from '../services/auth.service';
 import { SignalRService } from '../services/signalr.service';
 import { Subscription } from 'rxjs';
 import { BoardCellComponent } from '../components/board-cell/board-cell.component';
+import { PropertyPopupComponent } from '../components/property-popup/property-popup.component';
 
 @Component({
   selector: 'app-playground',
-  imports: [CommonModule, FormsModule, BoardCellComponent],
+  imports: [CommonModule, FormsModule, BoardCellComponent, PropertyPopupComponent],
   templateUrl: './playground.html',
   styleUrl: './playground.scss',
 })
@@ -37,6 +38,8 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
   readyTimeoutSeconds: number = 60;
   readyCountdown: number = 60;
   private readyTimerInterval: any = null;
+  showPropertyPopup: boolean = false;
+  currentPropertyCell: BoardCell | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -339,6 +342,14 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
               .flatMap(cell => cell.playersHere)
               .map(player => ({ username: player.username, position: player.position }));
             this.signalRService.initializePlayerPositions(playerPositions);
+            
+            // Check if landed on unowned property
+            const landedCell = this.boardCells.find(c => c.position === newPosition);
+            if (landedCell && landedCell.cellType === 1 && !landedCell.ownerUsername && landedCell.price) {
+              // Show property purchase popup
+              this.currentPropertyCell = landedCell;
+              this.showPropertyPopup = true;
+            }
           },
           error: (error) => {
             console.error('Failed to move player', error);
@@ -548,5 +559,55 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
       return '#2e7d32';
     }
     return this.getPlayerColor(this.game.currentTurnUsername);
+  }
+
+  onPurchaseProperty(): void {
+    if (!this.gameId || !this.currentPropertyCell) return;
+
+    this.gameService.purchaseProperty(this.gameId, this.currentPropertyCell.id).subscribe({
+      next: (playgroundInfo) => {
+        // Update board cells with new ownership info
+        this.boardCells = playgroundInfo.boardCells;
+        this.game = playgroundInfo.game;
+        
+        // Close popup
+        this.showPropertyPopup = false;
+        this.currentPropertyCell = null;
+        
+        alert(`Property purchased successfully!`);
+      },
+      error: (error) => {
+        console.error('Failed to purchase property', error);
+        alert('Failed to purchase property: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  onClosePropertyPopup(): void {
+    this.showPropertyPopup = false;
+    this.currentPropertyCell = null;
+  }
+
+  getCurrentPlayerMoney(): number {
+    const currentPlayer = this.boardCells
+      .flatMap(cell => cell.playersHere)
+      .find(p => p.username === this.currentUsername);
+    return currentPlayer?.money ?? 0;
+  }
+
+  getOwnerColor(position: number): string | null {
+    const cell = this.getBoardCell(position);
+    if (!cell?.ownerUsername) return null;
+    
+    // Find the owner player across all cells
+    const owner = this.boardCells
+      .flatMap(c => c.playersHere)
+      .find(p => p.username === cell.ownerUsername);
+    
+    return owner?.color || null;
+  }
+
+  trackByPosition(index: number, pos: number): number {
+    return pos;
   }
 }

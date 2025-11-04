@@ -19,6 +19,7 @@ export class BoardCellComponent {
   @Input() rowType: 'bottom' | 'top' | 'left' | 'right' = 'bottom';
   @Input() currentPlayerColor: string = '#2e7d32';
   @Input() currentTurnUsername: string = '';
+  @Input() ownerColor: string | null = null;
 
   isPlayerCurrentTurn(playerUsername: string): boolean {
     return this.currentTurnUsername === playerUsername;

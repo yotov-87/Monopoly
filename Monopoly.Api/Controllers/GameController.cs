@@ -213,4 +213,32 @@ public class GameController : ControllerBase
 
         return Ok(new { message = "Ready status updated successfully." });
     }
+
+    [HttpPost("{gameId}/purchase-property/{cellId}")]
+    [Authorize]
+    public async Task<IActionResult> PurchaseProperty(int gameId, int cellId)
+    {
+        // Get user ID from JWT token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return Unauthorized(new { message = "Invalid token." });
+        }
+
+        try
+        {
+            var playgroundInfo = await _gameService.PurchasePropertyAsync(gameId, userId, cellId);
+
+            if (playgroundInfo == null)
+            {
+                return NotFound(new { message = "Game or cell not found." });
+            }
+
+            return Ok(playgroundInfo);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }

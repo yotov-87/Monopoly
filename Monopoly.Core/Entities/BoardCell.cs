@@ -11,4 +11,7 @@ public class BoardCell
     public CellType CellType { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? ColorGroup { get; set; } // Color group for properties (Brown, LightBlue, Pink, etc.)
+    public int? Price { get; set; } // Purchase price for properties
+    public int? OwnerId { get; set; } // GamePlayer.Id who owns this property
+    public GamePlayer? Owner { get; set; } // Navigation property
 }
