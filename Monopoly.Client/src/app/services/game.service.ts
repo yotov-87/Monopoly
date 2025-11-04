@@ -102,4 +102,8 @@ export class GameService {
   purchaseProperty(gameId: number, cellId: number): Observable<PlaygroundInfo> {
     return this.http.post<PlaygroundInfo>(`${this.apiUrl}/${gameId}/purchase-property/${cellId}`, {});
   }
+
+  payRent(gameId: number, cellId: number): Observable<PlaygroundInfo> {
+    return this.http.post<PlaygroundInfo>(`${this.apiUrl}/${gameId}/pay-rent/${cellId}`, {});
+  }
 }

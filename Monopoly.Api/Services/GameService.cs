@@ -732,5 +732,104 @@ public class GameService : IGameService
                 // Return updated playground info
         return await GetPlaygroundInfoAsync(gameId, userId);
     }
+
+    public async Task<PlaygroundInfoResponse?> PayRentAsync(int gameId, int userId, int cellId)
+    {
+        const int RENT_AMOUNT = 100; // Default rent for all properties
+
+        var game = await _dbContext.Games
+            .Include(g => g.GameBoard!)
+                .ThenInclude(gb => gb.BoardCells)
+            .Include(g => g.GamePlayers)
+                .ThenInclude(gp => gp.User)
+            .Include(g => g.PlayerStates)
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null)
+        {
+            throw new InvalidOperationException("Game not found");
+        }
+
+        // Find the current player (tenant)
+        var tenantPlayer = game.GamePlayers.FirstOrDefault(gp => gp.UserId == userId);
+        if (tenantPlayer == null)
+        {
+            throw new InvalidOperationException("Player not in game");
+        }
+
+        var tenantState = game.PlayerStates.FirstOrDefault(ps => ps.UserId == userId);
+        if (tenantState == null)
+        {
+            throw new InvalidOperationException("Player state not found");
+        }
+
+        // Find the cell
+        var cell = game.GameBoard?.BoardCells.FirstOrDefault(c => c.Id == cellId);
+        if (cell == null)
+        {
+            throw new InvalidOperationException("Cell not found");
+        }
+
+        // Validate rent payment conditions
+        if (cell.CellType != CellType.Property)
+        {
+            throw new InvalidOperationException("This cell is not a property");
+        }
+
+        if (!cell.OwnerId.HasValue)
+        {
+            throw new InvalidOperationException("Property is not owned");
+        }
+
+        // Find the owner
+        var ownerPlayer = game.GamePlayers.FirstOrDefault(gp => gp.Id == cell.OwnerId.Value);
+        if (ownerPlayer == null)
+        {
+            throw new InvalidOperationException("Owner not found");
+        }
+
+        // Check if player is trying to pay rent to themselves
+        if (ownerPlayer.UserId == userId)
+        {
+            throw new InvalidOperationException("Cannot pay rent to yourself");
+        }
+
+        var ownerState = game.PlayerStates.FirstOrDefault(ps => ps.UserId == ownerPlayer.UserId);
+        if (ownerState == null)
+        {
+            throw new InvalidOperationException("Owner state not found");
+        }
+
+        // Check if tenant has enough money
+        if (tenantState.Money < RENT_AMOUNT)
+        {
+            throw new InvalidOperationException("Not enough money to pay rent");
+        }
+
+        // Check if player is on this cell
+        if (tenantState.Position != cell.Position)
+        {
+            throw new InvalidOperationException("Player not on this cell");
+        }
+
+        // Transfer rent
+        tenantState.Money -= RENT_AMOUNT;
+        ownerState.Money += RENT_AMOUNT;
+
+        await _dbContext.SaveChangesAsync();
+
+        // Broadcast rent paid event
+        await _hubContext.Clients.Group($"game_{gameId}").SendAsync("RentPaid", new
+        {
+            GameId = gameId,
+            CellId = cellId,
+            TenantUsername = tenantPlayer.User.Username,
+            OwnerUsername = ownerPlayer.User.Username,
+            Amount = RENT_AMOUNT
+        });
+
+        // Return updated playground info
+        return await GetPlaygroundInfoAsync(gameId, userId);
+    }
 }
 

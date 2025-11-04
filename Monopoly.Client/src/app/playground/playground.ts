@@ -195,6 +195,34 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         }
       })
     );
+
+    this.subscriptions.push(
+      this.signalRService.rentPaid$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          console.log(`Rent paid: ${event.tenantUsername} → ${event.ownerUsername}: $${event.amount}`);
+          
+          // Update player money locally without full reload
+          this.boardCells.forEach(cell => {
+            cell.playersHere.forEach(player => {
+              if (player.username === event.tenantUsername) {
+                player.money -= event.amount;
+              } else if (player.username === event.ownerUsername) {
+                player.money += event.amount;
+              }
+            });
+          });
+
+          // Show notification to all players
+          if (event.tenantUsername === this.currentUsername) {
+            alert(`💸 You paid $${event.amount} rent to ${event.ownerUsername}`);
+          } else if (event.ownerUsername === this.currentUsername) {
+            alert(`💰 You received $${event.amount} rent from ${event.tenantUsername}`);
+          } else {
+            alert(`💸 ${event.tenantUsername} paid $${event.amount} rent to ${event.ownerUsername}`);
+          }
+        }
+      })
+    );
   }
 
   loadGame(): void {
@@ -349,6 +377,22 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
               // Show property purchase popup
               this.currentPropertyCell = landedCell;
               this.showPropertyPopup = true;
+            } else if (landedCell && landedCell.cellType === 1 && landedCell.ownerUsername && this.gameId !== null) {
+              // Landed on owned property - check if not owned by current player
+              if (landedCell.ownerUsername !== this.currentUsername) {
+                // Automatically pay rent - updates will come via SignalR
+                console.log(`Paying rent to ${landedCell.ownerUsername}...`);
+                this.gameService.payRent(this.gameId, landedCell.id).subscribe({
+                  next: () => {
+                    // Success - SignalR will handle the update
+                    console.log(`Rent payment initiated`);
+                  },
+                  error: (error) => {
+                    console.error('Failed to pay rent', error);
+                    alert('Failed to pay rent: ' + (error.error?.message || 'Unknown error'));
+                  }
+                });
+              }
             }
           },
           error: (error) => {

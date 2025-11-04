@@ -42,6 +42,14 @@ export interface PlayerJoinedEvent {
   maxPlayerCount: number;
 }
 
+export interface RentPaidEvent {
+  gameId: number;
+  cellId: number;
+  tenantUsername: string;
+  ownerUsername: string;
+  amount: number;
+}
+
 export interface PlayerPositionUpdate {
   username: string;
   position: number;
@@ -60,6 +68,7 @@ export class SignalRService {
   public playerReady$ = new Subject<PlayerReadyEvent>();
   public gameStarted$ = new Subject<GameStartedEvent>();
   public playerJoined$ = new Subject<PlayerJoinedEvent>();
+  public rentPaid$ = new Subject<RentPaidEvent>();
   public playerPositions$ = new BehaviorSubject<Map<string, number>>(new Map());
 
   constructor(private authService: AuthService) {}
@@ -145,6 +154,10 @@ export class SignalRService {
 
     this.hubConnection.on('PlayerJoined', (event: PlayerJoinedEvent) => {
       this.playerJoined$.next(event);
+    });
+
+    this.hubConnection.on('RentPaid', (event: RentPaidEvent) => {
+      this.rentPaid$.next(event);
     });
   }
 }

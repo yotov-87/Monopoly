@@ -16,4 +16,5 @@ public interface IGameService
     Task<bool> BroadcastDiceRollAsync(int gameId, int userId, int dice1, int dice2);
     Task<bool> SetPlayerReadyAsync(int gameId, int userId, bool isReady);
     Task<PlaygroundInfoResponse?> PurchasePropertyAsync(int gameId, int userId, int cellId);
+    Task<PlaygroundInfoResponse?> PayRentAsync(int gameId, int userId, int cellId);
 }
