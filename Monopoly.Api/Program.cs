@@ -32,7 +32,7 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
     var username = uri.UserInfo.Split(':')[0];
     var password = uri.UserInfo.Split(':')[1];
     var database = uri.AbsolutePath.TrimStart('/');
-    connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Pooling=true;Timeout=30;CommandTimeout=30;No Reset On Close=true";
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
     Console.WriteLine($"Converted URI connection string to Npgsql format. Host: {uri.Host}");
 }
 else
