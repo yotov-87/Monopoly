@@ -32,7 +32,7 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
     var username = uri.UserInfo.Split(':')[0];
     var password = uri.UserInfo.Split(':')[1];
     var database = uri.AbsolutePath.TrimStart('/');
-    connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Pooling=true;Timeout=30;CommandTimeout=30";
     Console.WriteLine($"Converted URI connection string to Npgsql format. Host: {uri.Host}");
 }
 else
@@ -101,21 +101,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply database migrations automatically on startup
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
-    {
-        dbContext.Database.Migrate(); // Apply pending migrations
-        Console.WriteLine("Database migrations applied successfully");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error applying migrations: {ex.Message}");
-        throw;
-    }
-}
+// Database migrations should be applied manually or via CI/CD
+// Migrations have been applied to Supabase database
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
