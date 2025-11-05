@@ -32,13 +32,16 @@ if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("p
     var username = uri.UserInfo.Split(':')[0];
     var password = uri.UserInfo.Split(':')[1];
     var database = uri.AbsolutePath.TrimStart('/');
-    connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Pooling=true;Timeout=30;CommandTimeout=30";
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true;Pooling=true;Timeout=30;CommandTimeout=30;No Reset On Close=true";
     Console.WriteLine($"Converted URI connection string to Npgsql format. Host: {uri.Host}");
 }
 else
 {
     Console.WriteLine("Using connection string in keyword/value format");
 }
+
+// Force IPv4 for Npgsql to avoid Railway IPv6 issues
+AppContext.SetSwitch("System.Net.DisableIPv6", true);
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
