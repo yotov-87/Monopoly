@@ -702,7 +702,7 @@ public class GameService : IGameService
         }
 
         // Validate purchase conditions
-        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad)
+        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad && cell.CellType != CellType.Utility)
         {
             throw new InvalidOperationException("This cell cannot be purchased");
         }
@@ -783,7 +783,7 @@ public class GameService : IGameService
         }
 
         // Validate rent payment conditions
-        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad)
+        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad && cell.CellType != CellType.Utility)
         {
             throw new InvalidOperationException("This cell does not require rent");
         }
@@ -902,7 +902,7 @@ public class GameService : IGameService
         }
 
         // Validate trade conditions
-        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad)
+        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad && cell.CellType != CellType.Utility)
         {
             throw new InvalidOperationException("This cell cannot be traded");
         }

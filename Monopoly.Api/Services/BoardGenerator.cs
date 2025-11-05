@@ -32,7 +32,7 @@ public class BoardGenerator : IBoardGenerator
             
             // Position 11-19 - Second side (Pink and Orange properties)
             new BoardCell { GameBoardId = gameBoardId, Position = 11, CellType = CellType.Property, Name = "St. Charles Place", ColorGroup = "Pink", Price = 10, Rent = 100 },
-            new BoardCell { GameBoardId = gameBoardId, Position = 12, CellType = CellType.Utility, Name = "Electric Company" },
+            new BoardCell { GameBoardId = gameBoardId, Position = 12, CellType = CellType.Utility, Name = "Electric Company", Price = 150, Rent = 40 },
             new BoardCell { GameBoardId = gameBoardId, Position = 13, CellType = CellType.Property, Name = "States Avenue", ColorGroup = "Pink", Price = 10, Rent = 100 },
             new BoardCell { GameBoardId = gameBoardId, Position = 14, CellType = CellType.Property, Name = "Virginia Avenue", ColorGroup = "Pink", Price = 10, Rent = 100 },
             new BoardCell { GameBoardId = gameBoardId, Position = 15, CellType = CellType.Railroad, Name = "Pennsylvania Railroad", Price = 200, Rent = 50 },
@@ -52,7 +52,7 @@ public class BoardGenerator : IBoardGenerator
             new BoardCell { GameBoardId = gameBoardId, Position = 25, CellType = CellType.Railroad, Name = "B. & O. Railroad", Price = 200, Rent = 50 },
             new BoardCell { GameBoardId = gameBoardId, Position = 26, CellType = CellType.Property, Name = "Atlantic Avenue", ColorGroup = "Yellow", Price = 10, Rent = 100 },
             new BoardCell { GameBoardId = gameBoardId, Position = 27, CellType = CellType.Property, Name = "Ventnor Avenue", ColorGroup = "Yellow", Price = 10, Rent = 100 },
-            new BoardCell { GameBoardId = gameBoardId, Position = 28, CellType = CellType.Utility, Name = "Water Works" },
+            new BoardCell { GameBoardId = gameBoardId, Position = 28, CellType = CellType.Utility, Name = "Water Works", Price = 150, Rent = 40 },
             new BoardCell { GameBoardId = gameBoardId, Position = 29, CellType = CellType.Property, Name = "Marvin Gardens", ColorGroup = "Yellow", Price = 10, Rent = 100 },
             
             // Position 30 - Go To Jail

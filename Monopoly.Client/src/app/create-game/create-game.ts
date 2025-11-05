@@ -56,6 +56,8 @@ export class CreateGameComponent implements OnInit {
       { position: 25, name: "B. & O. Railroad", colorGroup: "Railroad" },
       { position: 26, name: "Atlantic Avenue", colorGroup: "Yellow" },
       { position: 27, name: "Ventnor Avenue", colorGroup: "Yellow" },
+      { position: 12, name: "Electric Company", colorGroup: "Utility" },
+      { position: 28, name: "Water Works", colorGroup: "Utility" },
       { position: 29, name: "Marvin Gardens", colorGroup: "Yellow" },
       { position: 31, name: "Pacific Avenue", colorGroup: "Green" },
       { position: 32, name: "North Carolina Avenue", colorGroup: "Green" },
@@ -67,7 +69,7 @@ export class CreateGameComponent implements OnInit {
 
     this.properties = propertyData.map(prop => ({ 
       ...prop, 
-      rent: prop.colorGroup === 'Railroad' ? 50 : 100 
+      rent: prop.colorGroup === 'Utility' ? 40 : (prop.colorGroup === 'Railroad' ? 50 : 100) 
     }));
   }
 
@@ -126,7 +128,8 @@ export class CreateGameComponent implements OnInit {
       'Yellow': '#FFFF00',
       'Green': '#00FF00',
       'DarkBlue': '#0000CD',
-      'Railroad': '#000000'
+      'Railroad': '#000000',
+      'Utility': '#888888'
     };
     return colorMap[colorGroup] || '#666';
   }
@@ -143,6 +146,6 @@ export class CreateGameComponent implements OnInit {
   }
 
   getColorGroups(): string[] {
-    return ['Brown', 'LightBlue', 'Pink', 'Orange', 'Red', 'Yellow', 'Green', 'DarkBlue', 'Railroad'];
+    return ['Brown', 'LightBlue', 'Pink', 'Orange', 'Red', 'Yellow', 'Green', 'DarkBlue', 'Railroad', 'Utility'];
   }
 }
