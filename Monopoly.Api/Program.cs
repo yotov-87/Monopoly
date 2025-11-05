@@ -82,11 +82,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Ensure database is created and migrations are applied
+// Apply database migrations automatically on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.EnsureCreated();
+    try
+    {
+        dbContext.Database.Migrate(); // Apply pending migrations
+        Console.WriteLine("Database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error applying migrations: {ex.Message}");
+        throw;
+    }
 }
 
 // Configure the HTTP request pipeline.
