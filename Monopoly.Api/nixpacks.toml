@@ -1,0 +1,15 @@
+[phases.setup]
+nixPkgs = ["dotnet-sdk_8"]
+
+[phases.build]
+cmds = [
+  "cd ..",
+  "dotnet restore Monopoly.Api/Monopoly.Api.csproj",
+  "dotnet publish Monopoly.Api/Monopoly.Api.csproj -c Release -o /app/publish"
+]
+
+[phases.deploy]
+cmd = "cd /app/publish && dotnet Monopoly.Api.dll"
+
+[start]
+cmd = "dotnet Monopoly.Api.dll"
