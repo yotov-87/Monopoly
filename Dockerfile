@@ -9,8 +9,13 @@ COPY ["Monopoly.Data/Monopoly.Data.csproj", "Monopoly.Data/"]
 COPY ["Monopoly.Hubs/Monopoly.Hubs.csproj", "Monopoly.Hubs/"]
 RUN dotnet restore "Monopoly.Api/Monopoly.Api.csproj"
 
-# Copy everything else and build
-COPY . .
+# Copy all source code
+COPY ["Monopoly.Api/", "Monopoly.Api/"]
+COPY ["Monopoly.Core/", "Monopoly.Core/"]
+COPY ["Monopoly.Data/", "Monopoly.Data/"]
+COPY ["Monopoly.Hubs/", "Monopoly.Hubs/"]
+
+# Build
 WORKDIR "/src/Monopoly.Api"
 RUN dotnet build "Monopoly.Api.csproj" -c Release -o /app/build
 
