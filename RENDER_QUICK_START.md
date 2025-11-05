@@ -40,14 +40,12 @@
    - Select branch: `main_initial_Azure`
    - Click "Apply"
 
-3. **Configure JWT Secret:**
-   - After services are created, go to `monopoly-api` service
-   - Navigate to "Environment" tab
-   - Update `JwtSettings__SecretKey` with a strong random value (32+ chars)
+3. **Wait for deployment** (5-10 minutes)
+   - All services deploy automatically
+   - All environment variables configured automatically
+   - **No manual configuration needed!**
 
-4. **Wait for deployment** (5-10 minutes)
-
-5. **Test:**
+4. **Test:**
    - Visit your API health endpoint: `https://monopoly-api.onrender.com/health`
    - Open frontend: `https://monopoly-frontend.onrender.com`
 

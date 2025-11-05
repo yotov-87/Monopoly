@@ -26,11 +26,11 @@ WORKDIR /app
 # Copy published files from build stage
 COPY --from=build /app/publish .
 
-# Expose port (Render will use PORT environment variable)
-EXPOSE 5000
+# Expose port (Render uses port 10000 by default)
+EXPOSE 10000
 
 # Set environment variable for ASP.NET Core
-ENV ASPNETCORE_URLS=http://+:5000
+ENV ASPNETCORE_URLS=http://+:10000
 
 # Run the application
 ENTRYPOINT ["dotnet", "Monopoly.Api.dll"]

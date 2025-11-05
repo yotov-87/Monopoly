@@ -36,12 +36,13 @@ Render will automatically detect the `render.yaml` file and set up all services.
 2. Connect your GitHub repository
 3. Select the repository: `yotov-87/Monopoly`
 4. Select the branch: `main_initial_Azure` (or your main branch)
-5. Click **"Apply"**
+5. **Important:** Name the service group (e.g., "monopoly-game")
+6. Click **"Apply"**
 
 Render will automatically create:
-- **monopoly-db** - PostgreSQL database
-- **monopoly-api** - Backend API
-- **monopoly-frontend** - Frontend static site
+- **monopoly-db** - PostgreSQL database (Free, 90-day limit)
+- **monopoly-api** - Backend API (Free, Docker container)
+- **monopoly-frontend** - Frontend static site (Free, Angular SPA)
 
 ## Step 4: Configure Environment Variables
 
@@ -51,20 +52,21 @@ After the services are created, you'll need to verify/add some environment varia
 
 The following are auto-configured by `render.yaml`:
 - ✅ `ASPNETCORE_ENVIRONMENT` = Production
-- ✅ `ASPNETCORE_URLS` = http://0.0.0.0:5000
+- ✅ `ASPNETCORE_URLS` = http://0.0.0.0:10000
+- ✅ `PORT` = 10000 (Render's default web service port)
 - ✅ `ConnectionStrings__DefaultConnection` (auto-linked from database)
 - ✅ `JwtSettings__Issuer` = MonopolyApi
 - ✅ `JwtSettings__Audience` = MonopolyClient
-- ✅ `FRONTEND_URL` (auto-linked from frontend)
+- ✅ `JwtSettings__SecretKey` (auto-generated secure random value)
+- ✅ `FRONTEND_URL` = monopoly-frontend.onrender.com
 
-**Manual step:** 
-- Set `JwtSettings__SecretKey` to a strong random value (32+ characters)
-  - In Render dashboard, go to `monopoly-api` → Environment
-  - Update `JwtSettings__SecretKey` with a secure random string
+**No manual configuration needed!** All environment variables are set automatically.
 
 ### For `monopoly-frontend` (Frontend):
 
-- ✅ `API_URL` (auto-linked from backend)
+- ✅ `RENDER_API_URL` = https://monopoly-api.onrender.com
+
+**No manual configuration needed!** The build script automatically configures the API URL.
 
 ## Step 5: Monitor Deployment
 

@@ -1,17 +1,15 @@
-services:
-  # PostgreSQL Database (Free tier)
-  - type: pserv
-    name: monopoly-db
-    env: docker
+databases:
+  # PostgreSQL Database (Free tier - 90 days)
+  - name: monopoly-db
+    databaseName: monopoly
+    user: monopoly
     plan: free
-    databases:
-      - name: monopoly
-        plan: free
 
+services:
   # Backend API (.NET 8)
   - type: web
     name: monopoly-api
-    env: docker
+    runtime: docker
     plan: free
     dockerfilePath: ./Monopoly.Api/Dockerfile
     dockerContext: .
@@ -19,7 +17,9 @@ services:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ASPNETCORE_URLS
-        value: http://0.0.0.0:5000
+        value: http://0.0.0.0:10000
+      - key: PORT
+        value: 10000
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: monopoly-db
@@ -31,25 +31,19 @@ services:
       - key: JwtSettings__Audience
         value: MonopolyClient
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: monopoly-frontend
-          property: host
+        value: monopoly-frontend.onrender.com
     healthCheckPath: /health
 
   # Frontend (Angular Static Site)
   - type: web
     name: monopoly-frontend
-    env: static
+    runtime: static
     plan: free
-    buildCommand: cd Monopoly.Client && npm install && npm run build
+    buildCommand: chmod +x Monopoly.Client/build.sh && ./Monopoly.Client/build.sh
     staticPublishPath: ./Monopoly.Client/dist/monopoly.client/browser
     envVars:
-      - key: API_URL
-        fromService:
-          type: web
-          name: monopoly-api
-          property: host
+      - key: RENDER_API_URL
+        value: https://monopoly-api.onrender.com
     routes:
       - type: rewrite
         source: /*
