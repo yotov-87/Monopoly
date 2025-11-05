@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { AuthService } from './auth.service';
 import { Subject, BehaviorSubject } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface DiceRolledEvent {
   gameId: number;
@@ -90,7 +91,7 @@ export interface PlayerPositionUpdate {
 })
 export class SignalRService {
   private hubConnection: signalR.HubConnection | null = null;
-  private hubUrl = 'http://localhost:5262/hubs/game';
+  private hubUrl = environment.hubUrl;
 
   public diceRolled$ = new Subject<DiceRolledEvent>();
   public playerMoved$ = new Subject<PlayerMovedEvent>();
