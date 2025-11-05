@@ -63,12 +63,9 @@ postgresql://postgres:YourPassword123@db.abcdefghijk.supabase.co:5432/postgres
 4. Select your **Monopoly** repository
 5. Railway will detect .NET project automatically
 
-### 2.3 Configure Root Directory
-1. After project creation, click on your service
-2. Go to **Settings** tab
-3. Find "Root Directory"
-4. Set to: `Monopoly/Monopoly.Api`
-5. Click "Save"
+### 2.3 Configure Dockerfile
+Railway will automatically detect the `Dockerfile` in the root of the Monopoly folder.
+No additional configuration needed for the build process.
 
 ### 2.4 Set Environment Variables
 1. Go to **Variables** tab

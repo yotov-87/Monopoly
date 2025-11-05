@@ -3,14 +3,14 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy csproj files and restore dependencies
-COPY ["Monopoly/Monopoly.Api/Monopoly.Api.csproj", "Monopoly.Api/"]
-COPY ["Monopoly/Monopoly.Core/Monopoly.Core.csproj", "Monopoly.Core/"]
-COPY ["Monopoly/Monopoly.Data/Monopoly.Data.csproj", "Monopoly.Data/"]
-COPY ["Monopoly/Monopoly.Hubs/Monopoly.Hubs.csproj", "Monopoly.Hubs/"]
+COPY ["Monopoly.Api/Monopoly.Api.csproj", "Monopoly.Api/"]
+COPY ["Monopoly.Core/Monopoly.Core.csproj", "Monopoly.Core/"]
+COPY ["Monopoly.Data/Monopoly.Data.csproj", "Monopoly.Data/"]
+COPY ["Monopoly.Hubs/Monopoly.Hubs.csproj", "Monopoly.Hubs/"]
 RUN dotnet restore "Monopoly.Api/Monopoly.Api.csproj"
 
 # Copy everything else and build
-COPY Monopoly/ .
+COPY . .
 WORKDIR "/src/Monopoly.Api"
 RUN dotnet build "Monopoly.Api.csproj" -c Release -o /app/build
 
