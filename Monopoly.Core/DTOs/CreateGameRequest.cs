@@ -4,4 +4,5 @@ public class CreateGameRequest
 {
     public string Name { get; set; } = string.Empty;
     public int PlayerCount { get; set; }
+    public List<PropertyRentConfiguration>? CustomRents { get; set; }
 }

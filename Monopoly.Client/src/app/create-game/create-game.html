@@ -1,7 +1,8 @@
 <div class="create-game-container">
-  <div class="create-game-card">
+  <!-- Step 1: Game Settings -->
+  <div *ngIf="currentStep === 1" class="create-game-card">
     <h2>Create New Game</h2>
-    <form (ngSubmit)="onCreateGame()">
+    <form (ngSubmit)="onNextStep()">
       <div class="form-group">
         <label for="create-game-name">Game Name</label>
         <input 
@@ -44,8 +45,42 @@
       
       <div class="button-group">
         <button id="create-game-cancel-btn" type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
-        <button id="create-game-submit-btn" type="submit" class="submit-btn">Create Game</button>
+        <button id="create-game-next-btn" type="submit" class="submit-btn">Next: Configure Rents</button>
       </div>
     </form>
+  </div>
+
+  <!-- Step 2: Configure Property Rents -->
+  <div *ngIf="currentStep === 2" class="create-game-card board-config-card">
+    <h2>Configure Property Rents</h2>
+    <p class="instructions">Set custom rent for each property (default: $100)</p>
+    
+    <div class="properties-grid">
+      <div *ngFor="let colorGroup of getColorGroups()" class="color-group">
+        <h3 class="color-group-title" [style.color]="getColorGroupColor(colorGroup)">
+          {{ colorGroup }}
+        </h3>
+        <div *ngFor="let prop of groupPropertiesByColor()[colorGroup]" class="property-item">
+          <div class="property-info">
+            <span class="color-badge" [style.background-color]="getColorGroupColor(colorGroup)"></span>
+            <span class="property-name">{{ prop.name }}</span>
+          </div>
+          <div class="rent-input-group">
+            <span class="currency">$</span>
+            <input 
+              type="number" 
+              [(ngModel)]="prop.rent" 
+              [min]="10"
+              [max]="1000"
+              class="rent-input">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <button type="button" class="cancel-btn" (click)="onBackStep()">Back</button>
+      <button type="button" class="submit-btn" (click)="onCreateGame()">Create Game</button>
+    </div>
   </div>
 </div>

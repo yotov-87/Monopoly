@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 export interface CreateGameRequest {
   name: string;
   playerCount: number;
+  customRents?: { position: number; rent: number; }[];
 }
 
 export interface GameResponse {
@@ -32,6 +33,7 @@ export interface BoardCell {
   name: string;
   colorGroup?: string;
   price?: number;
+  rent?: number;
   ownerUsername?: string;
   playersHere: PlayerPosition[];
 }

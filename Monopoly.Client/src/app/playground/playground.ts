@@ -473,14 +473,14 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
               .map(player => ({ username: player.username, position: player.position }));
             this.signalRService.initializePlayerPositions(playerPositions);
             
-            // Check if landed on unowned property
+            // Check if landed on unowned property or railroad
             const landedCell = this.boardCells.find(c => c.position === newPosition);
-            if (landedCell && landedCell.cellType === 1 && !landedCell.ownerUsername && landedCell.price) {
+            if (landedCell && (landedCell.cellType === 1 || landedCell.cellType === 9) && !landedCell.ownerUsername && landedCell.price) {
               // Show property purchase popup
               this.currentPropertyCell = landedCell;
               this.showPropertyPopup = true;
-            } else if (landedCell && landedCell.cellType === 1 && landedCell.ownerUsername && this.gameId !== null) {
-              // Landed on owned property - check if not owned by current player
+            } else if (landedCell && (landedCell.cellType === 1 || landedCell.cellType === 9) && landedCell.ownerUsername && this.gameId !== null) {
+              // Landed on owned property/railroad - check if not owned by current player
               if (landedCell.ownerUsername !== this.currentUsername) {
                 // Automatically pay rent - updates will come via SignalR
                 console.log(`Paying rent to ${landedCell.ownerUsername}...`);
@@ -736,11 +736,11 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
 
   onCellInfoClick(cell: BoardCell): void {
     // Check if cell is owned by another player and current player is on turn
-    if (cell.ownerUsername && cell.ownerUsername !== this.currentUsername && cell.cellType === 1 && this.isMyTurn()) {
-      // Show trade offer popup for properties owned by others (only when on turn)
+    if (cell.ownerUsername && cell.ownerUsername !== this.currentUsername && (cell.cellType === 1 || cell.cellType === 9) && this.isMyTurn()) {
+      // Show trade offer popup for properties/railroads owned by others (only when on turn)
       this.tradeOfferCell = cell;
       this.showTradeOfferPopup = true;
-    } else if (cell.ownerUsername && cell.ownerUsername !== this.currentUsername && cell.cellType === 1 && !this.isMyTurn()) {
+    } else if (cell.ownerUsername && cell.ownerUsername !== this.currentUsername && (cell.cellType === 1 || cell.cellType === 9) && !this.isMyTurn()) {
       // Not your turn - show info notification
       this.showNotification('You can only make trade offers when it\'s your turn!', 'warning', '⏳');
     } else {

@@ -72,6 +72,20 @@ public class GameService : IGameService
 
         // Generate standard board cells
         var boardCells = _boardGenerator.GenerateStandardBoard(gameBoard.Id);
+        
+        // Apply custom rents if provided
+        if (request.CustomRents != null && request.CustomRents.Any())
+        {
+            foreach (var customRent in request.CustomRents)
+            {
+                var cell = boardCells.FirstOrDefault(c => c.Position == customRent.Position);
+                if (cell != null && cell.CellType == CellType.Property)
+                {
+                    cell.Rent = customRent.Rent;
+                }
+            }
+        }
+        
         _dbContext.BoardCells.AddRange(boardCells);
         await _dbContext.SaveChangesAsync();
 
@@ -688,9 +702,9 @@ public class GameService : IGameService
         }
 
         // Validate purchase conditions
-        if (cell.CellType != CellType.Property)
+        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad)
         {
-            throw new InvalidOperationException("This cell is not a property");
+            throw new InvalidOperationException("This cell cannot be purchased");
         }
 
         if (cell.OwnerId.HasValue)
@@ -735,8 +749,6 @@ public class GameService : IGameService
 
     public async Task<PlaygroundInfoResponse?> PayRentAsync(int gameId, int userId, int cellId)
     {
-        const int BASE_RENT_AMOUNT = 100; // Base rent for properties
-
         var game = await _dbContext.Games
             .Include(g => g.GameBoard!)
                 .ThenInclude(gb => gb.BoardCells)
@@ -771,9 +783,9 @@ public class GameService : IGameService
         }
 
         // Validate rent payment conditions
-        if (cell.CellType != CellType.Property)
+        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad)
         {
-            throw new InvalidOperationException("This cell is not a property");
+            throw new InvalidOperationException("This cell does not require rent");
         }
 
         if (!cell.OwnerId.HasValue)
@@ -801,7 +813,8 @@ public class GameService : IGameService
         }
 
         // Calculate rent: check if owner has monopoly (all properties of same color)
-        int rentAmount = BASE_RENT_AMOUNT;
+        int baseRent = cell.Rent ?? 100; // Use cell's rent value or default to 100
+        int rentAmount = baseRent;
         
         if (!string.IsNullOrEmpty(cell.ColorGroup))
         {
@@ -816,7 +829,7 @@ public class GameService : IGameService
             if (ownerOwnsAll && propertiesInGroup.Count > 0)
             {
                 // Monopoly! Rent is 5x
-                rentAmount = BASE_RENT_AMOUNT * 5;
+                rentAmount = baseRent * 5;
             }
         }
 
@@ -846,7 +859,7 @@ public class GameService : IGameService
             TenantUsername = tenantPlayer.User.Username,
             OwnerUsername = ownerPlayer.User.Username,
             Amount = rentAmount,
-            IsMonopoly = rentAmount > BASE_RENT_AMOUNT
+            IsMonopoly = rentAmount > baseRent
         });
 
         // Return updated playground info
@@ -889,9 +902,9 @@ public class GameService : IGameService
         }
 
         // Validate trade conditions
-        if (cell.CellType != CellType.Property)
+        if (cell.CellType != CellType.Property && cell.CellType != CellType.Railroad)
         {
-            throw new InvalidOperationException("This cell is not a property");
+            throw new InvalidOperationException("This cell cannot be traded");
         }
 
         if (!cell.OwnerId.HasValue)
