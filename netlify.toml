@@ -1,7 +1,7 @@
 [build]
   base = "Monopoly.Client"
   command = "npm install && npm run build"
-  publish = "Monopoly.Client/dist/Monopoly.Client/browser"
+  publish = "dist/Monopoly.Client/browser"
 
 [[redirects]]
   from = "/*"
