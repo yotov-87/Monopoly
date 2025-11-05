@@ -10,7 +10,6 @@ services:
   - type: web
     name: monopoly-api
     runtime: docker
-    plan: free
     dockerfilePath: ./Monopoly.Api/Dockerfile
     dockerContext: .
     envVars:
@@ -38,7 +37,6 @@ services:
   - type: web
     name: monopoly-frontend
     runtime: static
-    plan: free
     buildCommand: chmod +x Monopoly.Client/build.sh && ./Monopoly.Client/build.sh
     staticPublishPath: ./Monopoly.Client/dist/monopoly.client/browser
     envVars:
