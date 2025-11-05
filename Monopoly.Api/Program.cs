@@ -25,7 +25,20 @@ if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Database connection string not configured. Set DATABASE_URL environment variable.");
 }
 
-Console.WriteLine($"Using connection string: {connectionString?.Substring(0, Math.Min(50, connectionString.Length))}...");
+// Convert URI format to Npgsql connection string format if needed
+if (connectionString.StartsWith("postgres://") || connectionString.StartsWith("postgresql://"))
+{
+    var uri = new Uri(connectionString);
+    var username = uri.UserInfo.Split(':')[0];
+    var password = uri.UserInfo.Split(':')[1];
+    var database = uri.AbsolutePath.TrimStart('/');
+    connectionString = $"Host={uri.Host};Port={uri.Port};Database={database};Username={username};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+    Console.WriteLine($"Converted URI connection string to Npgsql format. Host: {uri.Host}");
+}
+else
+{
+    Console.WriteLine("Using connection string in keyword/value format");
+}
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
