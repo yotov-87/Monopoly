@@ -1,0 +1,56 @@
+services:
+  # PostgreSQL Database (Free tier)
+  - type: pserv
+    name: monopoly-db
+    env: docker
+    plan: free
+    databases:
+      - name: monopoly
+        plan: free
+
+  # Backend API (.NET 8)
+  - type: web
+    name: monopoly-api
+    env: docker
+    plan: free
+    dockerfilePath: ./Monopoly.Api/Dockerfile
+    dockerContext: .
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:5000
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: monopoly-db
+          property: connectionString
+      - key: JwtSettings__SecretKey
+        generateValue: true
+      - key: JwtSettings__Issuer
+        value: MonopolyApi
+      - key: JwtSettings__Audience
+        value: MonopolyClient
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: monopoly-frontend
+          property: host
+    healthCheckPath: /health
+
+  # Frontend (Angular Static Site)
+  - type: web
+    name: monopoly-frontend
+    env: static
+    plan: free
+    buildCommand: cd Monopoly.Client && npm install && npm run build
+    staticPublishPath: ./Monopoly.Client/dist/monopoly.client/browser
+    envVars:
+      - key: API_URL
+        fromService:
+          type: web
+          name: monopoly-api
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

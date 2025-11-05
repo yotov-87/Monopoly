@@ -1,0 +1,16 @@
+Monopoly.Api/bin/
+Monopoly.Api/obj/
+Monopoly.Core/bin/
+Monopoly.Core/obj/
+Monopoly.Data/bin/
+Monopoly.Data/obj/
+Monopoly.Hubs/bin/
+Monopoly.Hubs/obj/
+Monopoly.Tests/
+Monopoly.Client/
+azure/
+*.sh
+*.sql
+*.md
+.git/
+.github/
