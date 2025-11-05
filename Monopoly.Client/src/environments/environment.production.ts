@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: '',  // Will be set during Vercel deployment as environment variable
-  hubUrl: ''   // Will be set during Vercel deployment as environment variable
+  apiUrl: 'https://monopoly-production-515f.up.railway.app:8080/api',
+  hubUrl: 'https://monopoly-production-515f.up.railway.app:8080/hubs'
 };
