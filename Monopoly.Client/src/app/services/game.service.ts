@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface CreateGameRequest {
   name: string;
@@ -57,7 +58,7 @@ export interface PlaygroundInfo {
   providedIn: 'root'
 })
 export class GameService {
-  private apiUrl = 'http://localhost:5262/api/game';
+  private apiUrl = `${environment.apiUrl}/game`;
 
   constructor(private http: HttpClient) {}
 
