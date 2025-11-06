@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Monopoly.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251106091425_AddHotelsToBoardCell")]
-    partial class AddHotelsToBoardCell
+    [Migration("20251106091425_AddHousesAndHotelsToBoardCell")]
+    partial class AddHousesAndHotelsToBoardCell
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

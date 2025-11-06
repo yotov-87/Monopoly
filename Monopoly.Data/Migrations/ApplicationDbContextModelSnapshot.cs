@@ -69,7 +69,7 @@ namespace Monopoly.Data.Migrations
                     b.HasIndex("GameBoardId", "Position")
                         .IsUnique();
 
-                    b.ToTable("BoardCells");
+                    b.ToTable("BoardCells", (string)null);
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.Game", b =>
@@ -113,7 +113,7 @@ namespace Monopoly.Data.Migrations
 
                     b.HasIndex("CurrentTurnUserId");
 
-                    b.ToTable("Games");
+                    b.ToTable("Games", (string)null);
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.GameBoard", b =>
@@ -135,7 +135,7 @@ namespace Monopoly.Data.Migrations
                     b.HasIndex("GameId")
                         .IsUnique();
 
-                    b.ToTable("GameBoards");
+                    b.ToTable("GameBoards", (string)null);
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.GamePlayer", b =>
@@ -162,7 +162,7 @@ namespace Monopoly.Data.Migrations
                     b.HasIndex("GameId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("GamePlayers");
+                    b.ToTable("GamePlayers", (string)null);
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.PlayerState", b =>
@@ -206,7 +206,7 @@ namespace Monopoly.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PlayerStates");
+                    b.ToTable("PlayerStates", (string)null);
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.PropertyTrade", b =>
@@ -249,7 +249,7 @@ namespace Monopoly.Data.Migrations
 
                     b.HasIndex("SellerPlayerId");
 
-                    b.ToTable("PropertyTrades");
+                    b.ToTable("PropertyTrades", (string)null);
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.User", b =>
@@ -277,7 +277,7 @@ namespace Monopoly.Data.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Monopoly.Core.Entities.BoardCell", b =>
