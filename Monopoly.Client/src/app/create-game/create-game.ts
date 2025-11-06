@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { GameService } from '../services/game.service';
-import { MonopolyBoardComponent } from '../components/monopoly-board/monopoly-board.component';
+import { GameTemplateService, GameTemplate } from '../services/game-template.service';
 
 interface PropertyConfig {
   position: number;
@@ -17,7 +17,7 @@ interface PropertyConfig {
 
 @Component({
   selector: 'app-create-game',
-  imports: [FormsModule, CommonModule, MonopolyBoardComponent],
+  imports: [FormsModule, CommonModule],
   templateUrl: './create-game.html',
   styleUrl: './create-game.scss'
 })
@@ -31,10 +31,22 @@ export class CreateGameComponent implements OnInit {
   // Property configuration
   properties: PropertyConfig[] = [];
 
-  constructor(private router: Router, private gameService: GameService) {}
+  // Template management
+  templates: GameTemplate[] = [];
+  selectedTemplateId: number | null = null;
+  showSaveDialog = false;
+  templateName = '';
+  templateDescription = '';
+
+  constructor(
+    private router: Router, 
+    private gameService: GameService,
+    private templateService: GameTemplateService
+  ) {}
 
   ngOnInit(): void {
     this.initializeProperties();
+    this.loadTemplates();
   }
 
   initializeProperties(): void {
@@ -156,5 +168,115 @@ export class CreateGameComponent implements OnInit {
 
   getColorGroups(): string[] {
     return ['Brown', 'LightBlue', 'Pink', 'Orange', 'Red', 'Yellow', 'Green', 'DarkBlue', 'Railroad', 'Utility'];
+  }
+
+  // Template management methods
+  loadTemplates(): void {
+    this.templateService.getUserTemplates().subscribe({
+      next: (templates) => {
+        this.templates = templates;
+      },
+      error: (error) => {
+        console.error('Failed to load templates', error);
+      }
+    });
+  }
+
+  onLoadTemplate(): void {
+    if (!this.selectedTemplateId) {
+      alert('Please select a template');
+      return;
+    }
+
+    this.templateService.getTemplateById(this.selectedTemplateId).subscribe({
+      next: (template) => {
+        // Update properties with template data
+        template.propertyConfigurations.forEach(config => {
+          const property = this.properties.find(p => p.position === config.position);
+          if (property) {
+            property.price = config.price;
+            property.rent = config.rent;
+            property.housePrice = config.housePrice;
+            property.hotelPrice = config.hotelPrice;
+          }
+        });
+        console.log('Template loaded successfully');
+      },
+      error: (error) => {
+        console.error('Failed to load template', error);
+        alert('Failed to load template: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  onShowSaveDialog(): void {
+    this.showSaveDialog = true;
+    this.templateName = '';
+    this.templateDescription = '';
+  }
+
+  onCancelSaveDialog(): void {
+    this.showSaveDialog = false;
+    this.templateName = '';
+    this.templateDescription = '';
+  }
+
+  onSaveTemplate(): void {
+    if (!this.templateName.trim()) {
+      alert('Please enter a template name');
+      return;
+    }
+
+    const propertyConfigs = this.properties.map(prop => ({
+      position: prop.position,
+      name: prop.name,
+      colorGroup: prop.colorGroup,
+      price: prop.price,
+      rent: prop.rent,
+      housePrice: prop.housePrice,
+      hotelPrice: prop.hotelPrice
+    }));
+
+    this.templateService.saveTemplate({
+      name: this.templateName,
+      description: this.templateDescription || undefined,
+      propertyConfigurations: propertyConfigs
+    }).subscribe({
+      next: (response) => {
+        console.log('Template saved successfully', response);
+        this.showSaveDialog = false;
+        this.templateName = '';
+        this.templateDescription = '';
+        // Refresh templates list
+        this.loadTemplates();
+      },
+      error: (error) => {
+        console.error('Failed to save template', error);
+        alert('Failed to save template: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
+  }
+
+  onDeleteTemplate(templateId: number, event: Event): void {
+    event.stopPropagation(); // Prevent dropdown change
+    
+    if (!confirm('Are you sure you want to delete this template?')) {
+      return;
+    }
+
+    this.templateService.deleteTemplate(templateId).subscribe({
+      next: () => {
+        console.log('Template deleted successfully');
+        if (this.selectedTemplateId === templateId) {
+          this.selectedTemplateId = null;
+        }
+        // Refresh templates list
+        this.loadTemplates();
+      },
+      error: (error) => {
+        console.error('Failed to delete template', error);
+        alert('Failed to delete template: ' + (error.error?.message || 'Unknown error'));
+      }
+    });
   }
 }

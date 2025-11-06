@@ -55,6 +55,38 @@
     <h2>Configure Property Settings</h2>
     <p class="instructions">Set custom values for each property (default: $10 for all)</p>
     
+    <!-- Template Management Section -->
+    <div class="template-section">
+      <div class="template-controls">
+        <div class="template-selector">
+          <label for="template-select">Load Template:</label>
+          <select 
+            id="template-select" 
+            [(ngModel)]="selectedTemplateId" 
+            class="template-dropdown">
+            <option [ngValue]="null">-- No template --</option>
+            <option *ngFor="let template of templates" [ngValue]="template.id">
+              {{ template.name }}
+              <span *ngIf="template.description"> - {{ template.description }}</span>
+            </option>
+          </select>
+          <button 
+            type="button" 
+            class="load-btn" 
+            (click)="onLoadTemplate()"
+            [disabled]="!selectedTemplateId">
+            Load
+          </button>
+        </div>
+        <button 
+          type="button" 
+          class="save-template-btn" 
+          (click)="onShowSaveDialog()">
+          Save as Template
+        </button>
+      </div>
+    </div>
+    
     <div class="properties-grid">
       <div *ngFor="let colorGroup of getColorGroups()" class="color-group">
         <h3 class="color-group-title" [style.color]="getColorGroupColor(colorGroup)">
@@ -123,6 +155,42 @@
     <div class="button-group">
       <button type="button" class="cancel-btn" (click)="onBackStep()">Back</button>
       <button type="button" class="submit-btn" (click)="onCreateGame()">Create Game</button>
+    </div>
+  </div>
+
+  <!-- Save Template Dialog -->
+  <div *ngIf="showSaveDialog" class="modal-overlay" (click)="onCancelSaveDialog()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <h3>Save Template</h3>
+      <form (ngSubmit)="onSaveTemplate()">
+        <div class="form-group">
+          <label for="template-name">Template Name *</label>
+          <input 
+            id="template-name"
+            type="text" 
+            [(ngModel)]="templateName" 
+            name="templateName"
+            placeholder="Enter template name"
+            required
+            maxlength="100">
+        </div>
+        
+        <div class="form-group">
+          <label for="template-description">Description</label>
+          <textarea 
+            id="template-description"
+            [(ngModel)]="templateDescription" 
+            name="templateDescription"
+            placeholder="Optional description"
+            rows="3"
+            maxlength="500"></textarea>
+        </div>
+        
+        <div class="button-group">
+          <button type="button" class="cancel-btn" (click)="onCancelSaveDialog()">Cancel</button>
+          <button type="submit" class="submit-btn">Save Template</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

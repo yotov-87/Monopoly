@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<BoardCell> BoardCells { get; set; }
     public DbSet<PlayerState> PlayerStates { get; set; }
     public DbSet<PropertyTrade> PropertyTrades { get; set; }
+    public DbSet<GameTemplate> GameTemplates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -127,6 +128,22 @@ public class ApplicationDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.SellerPlayerId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<GameTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.ConfigurationJson).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired();
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.UserId);
         });
     }
 }

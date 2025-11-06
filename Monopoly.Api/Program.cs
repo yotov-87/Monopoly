@@ -24,6 +24,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IBoardGenerator, BoardGenerator>();
+builder.Services.AddScoped<IGameTemplateService, GameTemplateService>();
 
 // Add SignalR
 builder.Services.AddSignalR();
