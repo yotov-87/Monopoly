@@ -45,15 +45,15 @@
       
       <div class="button-group">
         <button id="create-game-cancel-btn" type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
-        <button id="create-game-next-btn" type="submit" class="submit-btn">Next: Configure Rents</button>
+        <button id="create-game-next-btn" type="submit" class="submit-btn">Next: Configure Properties</button>
       </div>
     </form>
   </div>
 
-  <!-- Step 2: Configure Property Rents -->
+  <!-- Step 2: Configure Property Settings -->
   <div *ngIf="currentStep === 2" class="create-game-card board-config-card">
-    <h2>Configure Property Rents</h2>
-    <p class="instructions">Set custom rent for each property (default: $100)</p>
+    <h2>Configure Property Settings</h2>
+    <p class="instructions">Set custom values for each property (default: $10 for all)</p>
     
     <div class="properties-grid">
       <div *ngFor="let colorGroup of getColorGroups()" class="color-group">
@@ -65,14 +65,56 @@
             <span class="color-badge" [style.background-color]="getColorGroupColor(colorGroup)"></span>
             <span class="property-name">{{ prop.name }}</span>
           </div>
-          <div class="rent-input-group">
-            <span class="currency">$</span>
-            <input 
-              type="number" 
-              [(ngModel)]="prop.rent" 
-              [min]="10"
-              [max]="1000"
-              class="rent-input">
+          <div class="property-inputs">
+            <div class="input-field">
+              <label>Price</label>
+              <div class="input-with-currency">
+                <span class="currency">$</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="prop.price" 
+                  [min]="10"
+                  [max]="10000"
+                  class="value-input">
+              </div>
+            </div>
+            <div class="input-field">
+              <label>Rent</label>
+              <div class="input-with-currency">
+                <span class="currency">$</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="prop.rent" 
+                  [min]="10"
+                  [max]="10000"
+                  class="value-input">
+              </div>
+            </div>
+            <!-- Only show House and Hotel fields for regular properties, not for Railroad or Utility -->
+            <div *ngIf="prop.colorGroup !== 'Railroad' && prop.colorGroup !== 'Utility'" class="input-field">
+              <label>House</label>
+              <div class="input-with-currency">
+                <span class="currency">$</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="prop.housePrice" 
+                  [min]="10"
+                  [max]="10000"
+                  class="value-input">
+              </div>
+            </div>
+            <div *ngIf="prop.colorGroup !== 'Railroad' && prop.colorGroup !== 'Utility'" class="input-field">
+              <label>Hotel</label>
+              <div class="input-with-currency">
+                <span class="currency">$</span>
+                <input 
+                  type="number" 
+                  [(ngModel)]="prop.hotelPrice" 
+                  [min]="10"
+                  [max]="10000"
+                  class="value-input">
+              </div>
+            </div>
           </div>
         </div>
       </div>

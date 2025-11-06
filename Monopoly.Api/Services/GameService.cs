@@ -73,15 +73,18 @@ public class GameService : IGameService
         // Generate standard board cells
         var boardCells = _boardGenerator.GenerateStandardBoard(gameBoard.Id);
         
-        // Apply custom rents if provided
+        // Apply custom property configurations if provided
         if (request.CustomRents != null && request.CustomRents.Any())
         {
-            foreach (var customRent in request.CustomRents)
+            foreach (var customConfig in request.CustomRents)
             {
-                var cell = boardCells.FirstOrDefault(c => c.Position == customRent.Position);
-                if (cell != null && cell.CellType == CellType.Property)
+                var cell = boardCells.FirstOrDefault(c => c.Position == customConfig.Position);
+                if (cell != null && (cell.CellType == CellType.Property || cell.CellType == CellType.Railroad || cell.CellType == CellType.Utility))
                 {
-                    cell.Rent = customRent.Rent;
+                    cell.Price = customConfig.Price;
+                    cell.Rent = customConfig.Rent;
+                    // Note: HousePrice and HotelPrice can be added to BoardCell entity in the future
+                    // For now, we only apply Price and Rent
                 }
             }
         }

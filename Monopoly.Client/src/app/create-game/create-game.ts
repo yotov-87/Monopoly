@@ -5,11 +5,14 @@ import { CommonModule } from '@angular/common';
 import { GameService } from '../services/game.service';
 import { MonopolyBoardComponent } from '../components/monopoly-board/monopoly-board.component';
 
-interface PropertyRent {
+interface PropertyConfig {
   position: number;
   name: string;
   colorGroup: string;
+  price: number;
   rent: number;
+  housePrice: number;
+  hotelPrice: number;
 }
 
 @Component({
@@ -25,8 +28,8 @@ export class CreateGameComponent implements OnInit {
   maxPlayers = 8;
   currentStep = 1; // Step 1: Game settings, Step 2: Board configuration
   
-  // Property rent configuration
-  properties: PropertyRent[] = [];
+  // Property configuration
+  properties: PropertyConfig[] = [];
 
   constructor(private router: Router, private gameService: GameService) {}
 
@@ -35,8 +38,8 @@ export class CreateGameComponent implements OnInit {
   }
 
   initializeProperties(): void {
-    // Initialize all properties with default rent of 100
-    const propertyData: Omit<PropertyRent, 'rent'>[] = [
+    // Initialize all properties with default values
+    const propertyData: Omit<PropertyConfig, 'price' | 'rent' | 'housePrice' | 'hotelPrice'>[] = [
       { position: 1, name: "Mediterranean Avenue", colorGroup: "Brown" },
       { position: 3, name: "Baltic Avenue", colorGroup: "Brown" },
       { position: 5, name: "Reading Railroad", colorGroup: "Railroad" },
@@ -68,8 +71,11 @@ export class CreateGameComponent implements OnInit {
     ];
 
     this.properties = propertyData.map(prop => ({ 
-      ...prop, 
-      rent: prop.colorGroup === 'Utility' ? 40 : (prop.colorGroup === 'Railroad' ? 50 : 100) 
+      ...prop,
+      price: 10,
+      rent: 10,
+      housePrice: 10,
+      hotelPrice: 10
     }));
   }
 
@@ -92,15 +98,18 @@ export class CreateGameComponent implements OnInit {
   }
 
   onCreateGame(): void {
-    const customRents = this.properties.map(prop => ({
+    const customProperties = this.properties.map(prop => ({
       position: prop.position,
-      rent: prop.rent
+      price: prop.price,
+      rent: prop.rent,
+      housePrice: prop.housePrice,
+      hotelPrice: prop.hotelPrice
     }));
 
     this.gameService.createGame({
       name: this.gameName,
       playerCount: this.playerCount,
-      customRents: customRents
+      customRents: customProperties
     }).subscribe({
       next: (response) => {
         console.log('Game created successfully', response);
@@ -134,8 +143,8 @@ export class CreateGameComponent implements OnInit {
     return colorMap[colorGroup] || '#666';
   }
 
-  groupPropertiesByColor(): { [key: string]: PropertyRent[] } {
-    const grouped: { [key: string]: PropertyRent[] } = {};
+  groupPropertiesByColor(): { [key: string]: PropertyConfig[] } {
+    const grouped: { [key: string]: PropertyConfig[] } = {};
     this.properties.forEach(prop => {
       if (!grouped[prop.colorGroup]) {
         grouped[prop.colorGroup] = [];
