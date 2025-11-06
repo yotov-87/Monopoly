@@ -275,8 +275,22 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         if (event.gameId === this.gameId) {
           console.log(`Trade accepted: ${event.cellName} → ${event.buyerUsername} for $${event.price}`);
           
-          // Reload playground to update ownership and money
-          this.loadGame();
+          // Update the specific cell's ownership locally (smooth update)
+          const cell = this.boardCells.find(c => c.position === event.cellPosition);
+          if (cell) {
+            cell.ownerUsername = event.buyerUsername;
+          }
+          
+          // Update money for buyer and seller across all cells
+          this.boardCells.forEach(c => {
+            c.playersHere.forEach(player => {
+              if (player.username === event.buyerUsername) {
+                player.money -= event.price;
+              } else if (player.username === event.sellerUsername) {
+                player.money += event.price;
+              }
+            });
+          });
           
           // Show notifications
           if (event.buyerUsername === this.currentUsername) {
@@ -320,6 +334,45 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
               `You rejected the offer for ${event.cellName}`,
               'info',
               '❌'
+            );
+          }
+        }
+      })
+    );
+
+    // Subscribe to property purchased events
+    this.subscriptions.push(
+      this.signalRService.propertyPurchased$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          console.log(`Property purchased: Cell ${event.cellId} by ${event.ownerUsername} for $${event.price}`);
+          
+          // Update the specific cell's ownership locally (smooth update)
+          const cell = this.boardCells.find(c => c.id === event.cellId);
+          if (cell) {
+            cell.ownerUsername = event.ownerUsername;
+          }
+          
+          // Update money for the buyer across all cells
+          this.boardCells.forEach(c => {
+            c.playersHere.forEach(player => {
+              if (player.username === event.ownerUsername) {
+                player.money -= event.price;
+              }
+            });
+          });
+          
+          // Show notifications
+          if (event.ownerUsername === this.currentUsername) {
+            this.showNotification(
+              `You purchased this property for $${event.price}`,
+              'success',
+              '🏠'
+            );
+          } else {
+            this.showNotification(
+              `${event.ownerUsername} purchased a property for $${event.price}`,
+              'info',
+              '🏠'
             );
           }
         }
@@ -720,7 +773,7 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         this.showPropertyPopup = false;
         this.currentPropertyCell = null;
         
-        this.showNotification('Property purchased successfully!', 'success', '🏠');
+        // Notification will be shown via SignalR event
       },
       error: (error) => {
         console.error('Failed to purchase property', error);

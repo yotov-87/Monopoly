@@ -80,6 +80,13 @@ export interface TradeRejectedEvent {
   cellName: string;
 }
 
+export interface PropertyPurchasedEvent {
+  gameId: number;
+  cellId: number;
+  ownerUsername: string;
+  price: number;
+}
+
 export interface PlayerPositionUpdate {
   username: string;
   position: number;
@@ -102,6 +109,7 @@ export class SignalRService {
   public tradeProposed$ = new Subject<TradeProposedEvent>();
   public tradeAccepted$ = new Subject<TradeAcceptedEvent>();
   public tradeRejected$ = new Subject<TradeRejectedEvent>();
+  public propertyPurchased$ = new Subject<PropertyPurchasedEvent>();
   public playerPositions$ = new BehaviorSubject<Map<string, number>>(new Map());
 
   constructor(private authService: AuthService) {}
@@ -203,6 +211,10 @@ export class SignalRService {
 
     this.hubConnection.on('TradeRejected', (event: TradeRejectedEvent) => {
       this.tradeRejected$.next(event);
+    });
+
+    this.hubConnection.on('PropertyPurchased', (event: PropertyPurchasedEvent) => {
+      this.propertyPurchased$.next(event);
     });
   }
 }
