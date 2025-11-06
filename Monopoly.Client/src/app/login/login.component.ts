@@ -21,7 +21,8 @@ export class LoginComponent {
         console.log('Login successful', response);
         this.authService.saveToken(response.token);
         this.authService.saveUsername(response.username);
-        this.router.navigate(['/']);
+        // Reload the page to initialize SignalR connection with new auth token
+        window.location.href = '/';
       },
       error: (error) => {
         console.error('Login failed', error);
