@@ -19,4 +19,5 @@ public interface IGameService
     Task<PlaygroundInfoResponse?> PayRentAsync(int gameId, int userId, int cellId);
     Task<int?> ProposeTradeAsync(int gameId, int userId, int cellId, int offeredPrice);
     Task<PlaygroundInfoResponse?> RespondToTradeAsync(int gameId, int userId, int tradeId, bool accept);
+    Task<PlaygroundInfoResponse?> BuildHouseAsync(int gameId, int userId, int cellId);
 }

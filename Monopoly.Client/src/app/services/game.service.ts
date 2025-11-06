@@ -34,6 +34,7 @@ export interface BoardCell {
   colorGroup?: string;
   price?: number;
   rent?: number;
+  houses: number;
   ownerUsername?: string;
   playersHere: PlayerPosition[];
 }
@@ -120,6 +121,13 @@ export class GameService {
     return this.http.post<PlaygroundInfo>(
       `${this.apiUrl}/${gameId}/respond-trade/${tradeId}`, 
       { accept }
+    );
+  }
+
+  buildHouse(gameId: number, cellId: number): Observable<PlaygroundInfo> {
+    return this.http.post<PlaygroundInfo>(
+      `${this.apiUrl}/${gameId}/build-house/${cellId}`,
+      {}
     );
   }
 }

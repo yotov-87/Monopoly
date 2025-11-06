@@ -378,6 +378,45 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         }
       })
     );
+
+    // Subscribe to house built events
+    this.subscriptions.push(
+      this.signalRService.houseBuilt$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          console.log(`House built: ${event.ownerUsername} built house on ${event.cellName} (${event.houses} houses) for $${event.price}`);
+          
+          // Update the specific cell's houses count locally (smooth update)
+          const cell = this.boardCells.find(c => c.id === event.cellId);
+          if (cell) {
+            cell.houses = event.houses;
+          }
+          
+          // Update money for the builder across all cells
+          this.boardCells.forEach(c => {
+            c.playersHere.forEach(player => {
+              if (player.username === event.ownerUsername) {
+                player.money -= event.price;
+              }
+            });
+          });
+          
+          // Show notifications
+          if (event.ownerUsername === this.currentUsername) {
+            this.showNotification(
+              `You built a house on ${event.cellName} for $${event.price}`,
+              'success',
+              '🏠'
+            );
+          } else {
+            this.showNotification(
+              `${event.ownerUsername} built a house on ${event.cellName}`,
+              'info',
+              '🏗️'
+            );
+          }
+        }
+      })
+    );
   }
 
   loadGame(): void {
@@ -885,6 +924,68 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
       .find(p => p.username === cell.ownerUsername);
     
     return owner?.color || null;
+  }
+
+  canBuildHouse(cell: BoardCell): boolean {
+    // Can only build houses on regular properties (cellType === 1)
+    if (cell.cellType !== 1) return false;
+    
+    // Must own the property
+    if (cell.ownerUsername !== this.currentUsername) return false;
+    
+    // Max 4 houses
+    if (cell.houses >= 4) return false;
+    
+    // Must own all properties in the color group (monopoly)
+    const propertiesInGroup = this.boardCells.filter(c => 
+      c.cellType === 1 && c.colorGroup === cell.colorGroup
+    );
+    
+    const ownsMonopoly = propertiesInGroup.every(c => c.ownerUsername === this.currentUsername);
+    if (!ownsMonopoly) return false;
+    
+    // Balanced building rule: can't build if this property would have 2+ more houses than others
+    const minHousesInGroup = Math.min(...propertiesInGroup.map(c => c.houses));
+    if (cell.houses > minHousesInGroup) return false;
+    
+    // Must have enough money (house price is 50 for now, will be configurable)
+    const currentPlayerMoney = this.getCurrentPlayerMoney();
+    if (currentPlayerMoney < 50) return false;
+    
+    return true;
+  }
+
+  onBuildHouse(cellId: number): void {
+    if (this.gameId === null) return;
+
+    this.gameService.buildHouse(this.gameId, cellId).subscribe({
+      next: (playgroundInfo) => {
+        console.log('House built successfully');
+        
+        // Update local state with the returned data
+        this.boardCells = playgroundInfo.boardCells;
+        this.game = playgroundInfo.game;
+        
+        // Update selected cell if it's still the same
+        if (this.selectedCell && this.selectedCell.id === cellId) {
+          this.selectedCell = this.boardCells.find(c => c.id === cellId) || null;
+        }
+        
+        this.showNotification(
+          '🏠 House built successfully!',
+          'success',
+          '🏠'
+        );
+      },
+      error: (error) => {
+        console.error('Failed to build house', error);
+        this.showNotification(
+          'Failed to build house: ' + (error.error?.message || 'Unknown error'),
+          'error',
+          '❌'
+        );
+      }
+    });
   }
 
   trackByPosition(index: number, pos: number): number {

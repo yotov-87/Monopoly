@@ -11,7 +11,11 @@ import { BoardCell } from '../../services/game.service';
 })
 export class CellInfoPopupComponent {
   @Input() cell: BoardCell | null = null;
+  @Input() currentUsername: string | null = null;
+  @Input() playerMoney: number = 0;
+  @Input() canBuildHouse: boolean = false;
   @Output() close = new EventEmitter<void>();
+  @Output() buildHouse = new EventEmitter<number>();
 
   getCellTypeName(cellType: number): string {
     const types: { [key: number]: string } = {
@@ -44,6 +48,12 @@ export class CellInfoPopupComponent {
 
   onClose(): void {
     this.close.emit();
+  }
+
+  onBuildHouse(): void {
+    if (this.cell) {
+      this.buildHouse.emit(this.cell.id);
+    }
   }
 
   onOverlayClick(event: MouseEvent): void {

@@ -160,6 +160,10 @@
   <app-cell-info-popup
     *ngIf="showCellInfoPopup"
     [cell]="selectedCell"
+    [currentUsername]="currentUsername"
+    [playerMoney]="getCurrentPlayerMoney()"
+    [canBuildHouse]="selectedCell ? canBuildHouse(selectedCell) : false"
+    (buildHouse)="onBuildHouse($event)"
     (close)="onCloseCellInfo()">
   </app-cell-info-popup>
 

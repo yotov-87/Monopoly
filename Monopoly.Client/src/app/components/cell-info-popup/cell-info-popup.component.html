@@ -31,6 +31,23 @@
         </div>
       </div>
 
+      <!-- Houses Info -->
+      <div class="info-section" *ngIf="cell.cellType === 1 && cell.ownerUsername">
+        <div class="info-label">Houses:</div>
+        <div class="info-value houses">
+          <span class="house-icon" *ngFor="let h of [].constructor(cell.houses)">🏠</span>
+          <span *ngIf="cell.houses === 0" class="no-houses">No houses</span>
+          <span class="house-count">{{ cell.houses }}/4</span>
+        </div>
+      </div>
+
+      <!-- Build House Button -->
+      <div class="action-section" *ngIf="canBuildHouse && cell.cellType === 1 && cell.ownerUsername === currentUsername">
+        <button class="btn-build-house" (click)="onBuildHouse()">
+          🏠 Build House ($50)
+        </button>
+      </div>
+
       <!-- Players Here -->
       <div class="info-section" *ngIf="cell.playersHere && cell.playersHere.length > 0">
         <div class="info-label">Players Here:</div>

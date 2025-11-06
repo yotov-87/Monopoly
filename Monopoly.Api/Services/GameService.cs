@@ -396,6 +396,7 @@ public class GameService : IGameService
                 Name = bc.Name,
                 ColorGroup = bc.ColorGroup,
                 Price = bc.Price,
+                Houses = bc.Houses,
                 OwnerUsername = bc.OwnerId.HasValue 
                     ? game.GamePlayers.FirstOrDefault(gp => gp.Id == bc.OwnerId.Value)?.User.Username 
                     : null,
@@ -815,11 +816,17 @@ public class GameService : IGameService
             throw new InvalidOperationException("Owner state not found");
         }
 
-        // Calculate rent: check if owner has monopoly (all properties of same color)
+        // Calculate rent: check if owner has monopoly (all properties of same color) and houses
         int baseRent = cell.Rent ?? 100; // Use cell's rent value or default to 100
         int rentAmount = baseRent;
         
-        if (!string.IsNullOrEmpty(cell.ColorGroup))
+        // If property has houses, rent increases by base rent for each house
+        // 0 houses = baseRent, 1 house = baseRent * 2, 2 houses = baseRent * 3, etc.
+        if (cell.Houses > 0)
+        {
+            rentAmount = baseRent * (cell.Houses + 1);
+        }
+        else if (!string.IsNullOrEmpty(cell.ColorGroup))
         {
             // Get all properties in the same color group
             var propertiesInGroup = game.GameBoard?.BoardCells
@@ -831,8 +838,8 @@ public class GameService : IGameService
 
             if (ownerOwnsAll && propertiesInGroup.Count > 0)
             {
-                // Monopoly! Rent is 5x
-                rentAmount = baseRent * 5;
+                // Monopoly without houses! Rent is 2x (changed from 5x to match standard rules)
+                rentAmount = baseRent * 2;
             }
         }
 
@@ -1083,6 +1090,113 @@ public class GameService : IGameService
                 CellName = cell.Name
             });
         }
+
+        // Return updated playground info
+        return await GetPlaygroundInfoAsync(gameId, userId);
+    }
+
+    public async Task<PlaygroundInfoResponse?> BuildHouseAsync(int gameId, int userId, int cellId)
+    {
+        var game = await _dbContext.Games
+            .Include(g => g.GameBoard!)
+                .ThenInclude(gb => gb.BoardCells)
+            .Include(g => g.GamePlayers)
+                .ThenInclude(gp => gp.User)
+            .Include(g => g.PlayerStates)
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null)
+        {
+            throw new InvalidOperationException("Game not found");
+        }
+
+        // Find the player
+        var gamePlayer = game.GamePlayers.FirstOrDefault(gp => gp.UserId == userId);
+        if (gamePlayer == null)
+        {
+            throw new InvalidOperationException("Player not in game");
+        }
+
+        // Find player state
+        var playerState = game.PlayerStates.FirstOrDefault(ps => ps.UserId == userId);
+        if (playerState == null)
+        {
+            throw new InvalidOperationException("Player state not found");
+        }
+
+        // Find the cell
+        var cell = game.GameBoard?.BoardCells.FirstOrDefault(c => c.Id == cellId);
+        if (cell == null)
+        {
+            throw new InvalidOperationException("Cell not found");
+        }
+
+        // Validate building conditions
+        if (cell.CellType != CellType.Property)
+        {
+            throw new InvalidOperationException("Can only build houses on properties");
+        }
+
+        if (cell.OwnerId != gamePlayer.Id)
+        {
+            throw new InvalidOperationException("You don't own this property");
+        }
+
+        if (string.IsNullOrEmpty(cell.ColorGroup))
+        {
+            throw new InvalidOperationException("Property has no color group");
+        }
+
+        // Check if player owns all properties in this color group (monopoly)
+        var propertiesInGroup = game.GameBoard?.BoardCells
+            .Where(c => c.CellType == CellType.Property && c.ColorGroup == cell.ColorGroup)
+            .ToList() ?? new List<BoardCell>();
+
+        var ownsMonopoly = propertiesInGroup.All(c => c.OwnerId == gamePlayer.Id);
+        if (!ownsMonopoly)
+        {
+            throw new InvalidOperationException("You must own all properties in this color group to build houses");
+        }
+
+        // Check if already has 4 houses
+        if (cell.Houses >= 4)
+        {
+            throw new InvalidOperationException("Maximum 4 houses per property");
+        }
+
+        // Check balanced building rule: can't build if this property would have 2 more houses than any other in the group
+        var minHousesInGroup = propertiesInGroup.Min(c => c.Houses);
+        if (cell.Houses > minHousesInGroup)
+        {
+            throw new InvalidOperationException("Must build houses evenly across all properties in the color group");
+        }
+
+        // Get house price from PropertyRentConfiguration (stored during game creation)
+        // For now, use a default price of 50 per house
+        int housePrice = 50; // TODO: Get from game configuration
+
+        // Check if player has enough money
+        if (playerState.Money < housePrice)
+        {
+            throw new InvalidOperationException("Not enough money to build a house");
+        }
+
+        // Build the house
+        cell.Houses++;
+        playerState.Money -= housePrice;
+
+        await _dbContext.SaveChangesAsync();
+
+        // Broadcast house built event
+        await _hubContext.Clients.Group($"game_{gameId}").SendAsync("HouseBuilt", new
+        {
+            GameId = gameId,
+            CellId = cellId,
+            CellName = cell.Name,
+            OwnerUsername = gamePlayer.User.Username,
+            Houses = cell.Houses,
+            Price = housePrice
+        });
 
         // Return updated playground info
         return await GetPlaygroundInfoAsync(gameId, userId);

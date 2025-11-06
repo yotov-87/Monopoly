@@ -87,6 +87,15 @@ export interface PropertyPurchasedEvent {
   price: number;
 }
 
+export interface HouseBuiltEvent {
+  gameId: number;
+  cellId: number;
+  cellName: string;
+  ownerUsername: string;
+  houses: number;
+  price: number;
+}
+
 export interface PlayerPositionUpdate {
   username: string;
   position: number;
@@ -110,6 +119,7 @@ export class SignalRService {
   public tradeAccepted$ = new Subject<TradeAcceptedEvent>();
   public tradeRejected$ = new Subject<TradeRejectedEvent>();
   public propertyPurchased$ = new Subject<PropertyPurchasedEvent>();
+  public houseBuilt$ = new Subject<HouseBuiltEvent>();
   public playerPositions$ = new BehaviorSubject<Map<string, number>>(new Map());
 
   constructor(private authService: AuthService) {}
@@ -215,6 +225,10 @@ export class SignalRService {
 
     this.hubConnection.on('PropertyPurchased', (event: PropertyPurchasedEvent) => {
       this.propertyPurchased$.next(event);
+    });
+
+    this.hubConnection.on('HouseBuilt', (event: HouseBuiltEvent) => {
+      this.houseBuilt$.next(event);
     });
   }
 }

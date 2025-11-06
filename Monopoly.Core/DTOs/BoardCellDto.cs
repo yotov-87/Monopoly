@@ -12,6 +12,7 @@ public class BoardCellDto
     public string? ColorGroup { get; set; }
     public int? Price { get; set; }
     public int? Rent { get; set; }
+    public int Houses { get; set; }
     public string? OwnerUsername { get; set; }
     public List<PlayerPositionDto> PlayersHere { get; set; } = new List<PlayerPositionDto>();
 }
