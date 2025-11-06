@@ -6,6 +6,30 @@
         <button id="header-login-btn" (click)="onLogin()">Login</button>
         <button id="header-register-btn" (click)="onRegister()">Register</button>
       } @else {
+        <!-- Game Invitations -->
+        @if (invitations.length > 0) {
+          <div class="invitations-container">
+            @for (invitation of invitations; track invitation.gameId) {
+              <div class="invitation-btn-wrapper">
+                <button 
+                  class="invitation-btn" 
+                  (click)="onJoinGame(invitation)"
+                  [title]="'Join game: ' + invitation.gameName">
+                  <span class="invitation-icon">🎮</span>
+                  <span class="invitation-text">{{ invitation.gameName }}</span>
+                  <span class="invitation-action">Join</span>
+                </button>
+                <button 
+                  class="dismiss-btn" 
+                  (click)="onDismissInvitation(invitation, $event)"
+                  title="Dismiss">
+                  ✕
+                </button>
+              </div>
+            }
+          </div>
+        }
+        
         <span class="username-display">{{ username }}</span>
         <button id="header-my-games-btn" class="my-games-btn" (click)="onMyGames()">My Games</button>
         <button id="header-create-game-btn" class="create-game-btn" (click)="onCreateGame()">Create New Game</button>

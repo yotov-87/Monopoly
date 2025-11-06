@@ -300,16 +300,20 @@ public class GameService : IGameService
         await _dbContext.Entry(game).Collection(g => g.GamePlayers).LoadAsync();
         await _dbContext.Entry(game).Reference(g => g.CurrentTurnUser).LoadAsync();
 
-        // Broadcast PlayerJoined event via SignalR
+        // Broadcast PlayerJoined event via SignalR to the game group (for players already in the game)
         var playerJoinedEvent = new PlayerJoinedEvent
         {
             GameId = gameId,
+            GameName = game.Name,
             Username = userToAdd.Username,
             CurrentPlayerCount = game.GamePlayers.Count,
             MaxPlayerCount = game.PlayerCount
         };
 
         await _hubContext.Clients.Group($"game_{gameId}").SendAsync("PlayerJoined", playerJoinedEvent);
+
+        // ALSO send notification directly to the invited player (who is not in the group yet)
+        await _hubContext.Clients.User(userToAdd.Id.ToString()).SendAsync("PlayerJoined", playerJoinedEvent);
 
         // Return updated game response
         return new GameResponse

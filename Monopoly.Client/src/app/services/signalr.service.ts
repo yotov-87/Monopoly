@@ -37,6 +37,7 @@ export interface GameStartedEvent {
 
 export interface PlayerJoinedEvent {
   gameId: number;
+  gameName: string;
   username: string;
   currentPlayerCount: number;
   maxPlayerCount: number;
@@ -135,6 +136,19 @@ export class SignalRService {
   constructor(private authService: AuthService) {}
 
   public startConnection(): Promise<void> {
+    // If already connected, return resolved promise
+    if (this.hubConnection && this.hubConnection.state === signalR.HubConnectionState.Connected) {
+      console.log('SignalR already connected');
+      return Promise.resolve();
+    }
+
+    // If connection exists but not connected, try to start it
+    if (this.hubConnection && this.hubConnection.state !== signalR.HubConnectionState.Disconnected) {
+      console.log('SignalR connection in progress...');
+      return Promise.resolve();
+    }
+
+    // Create new connection
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(this.hubUrl, {
         accessTokenFactory: () => this.authService.getToken() || ''
@@ -214,6 +228,7 @@ export class SignalRService {
     });
 
     this.hubConnection.on('PlayerJoined', (event: PlayerJoinedEvent) => {
+      console.log('SignalR received PlayerJoined event:', event);
       this.playerJoined$.next(event);
     });
 
