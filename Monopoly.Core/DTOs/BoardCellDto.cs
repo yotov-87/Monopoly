@@ -13,6 +13,7 @@ public class BoardCellDto
     public int? Price { get; set; }
     public int? Rent { get; set; }
     public int Houses { get; set; }
+    public int Hotels { get; set; }
     public string? OwnerUsername { get; set; }
     public List<PlayerPositionDto> PlayersHere { get; set; } = new List<PlayerPositionDto>();
 }

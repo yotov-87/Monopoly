@@ -35,6 +35,7 @@ export interface BoardCell {
   price?: number;
   rent?: number;
   houses: number;
+  hotels: number;
   ownerUsername?: string;
   playersHere: PlayerPosition[];
 }
@@ -127,6 +128,13 @@ export class GameService {
   buildHouse(gameId: number, cellId: number): Observable<PlaygroundInfo> {
     return this.http.post<PlaygroundInfo>(
       `${this.apiUrl}/${gameId}/build-house/${cellId}`,
+      {}
+    );
+  }
+
+  buildHotel(gameId: number, cellId: number): Observable<PlaygroundInfo> {
+    return this.http.post<PlaygroundInfo>(
+      `${this.apiUrl}/${gameId}/build-hotel/${cellId}`,
       {}
     );
   }

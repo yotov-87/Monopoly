@@ -14,6 +14,7 @@ public class BoardCell
     public int? Price { get; set; } // Purchase price for properties
     public int? Rent { get; set; } // Rent amount for properties (default 100)
     public int Houses { get; set; } = 0; // Number of houses built on this property (0-4)
+    public int Hotels { get; set; } = 0; // Number of hotels built on this property (0-1, requires 4 houses first)
     public int? OwnerId { get; set; } // GamePlayer.Id who owns this property
     public GamePlayer? Owner { get; set; } // Navigation property
 }

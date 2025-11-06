@@ -163,7 +163,9 @@
     [currentUsername]="currentUsername"
     [playerMoney]="getCurrentPlayerMoney()"
     [canBuildHouse]="selectedCell ? canBuildHouse(selectedCell) : false"
+    [canBuildHotel]="selectedCell ? canBuildHotel(selectedCell) : false"
     (buildHouse)="onBuildHouse($event)"
+    (buildHotel)="onBuildHotel($event)"
     (close)="onCloseCellInfo()">
   </app-cell-info-popup>
 

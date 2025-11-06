@@ -417,6 +417,46 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         }
       })
     );
+
+    // Subscribe to hotel built events
+    this.subscriptions.push(
+      this.signalRService.hotelBuilt$.subscribe(event => {
+        if (event.gameId === this.gameId) {
+          console.log(`Hotel built: ${event.ownerUsername} built hotel on ${event.cellName} for $${event.price}`);
+          
+          // Update the specific cell's hotels count and remove houses locally (smooth update)
+          const cell = this.boardCells.find(c => c.id === event.cellId);
+          if (cell) {
+            cell.houses = 0; // Remove houses when hotel is built
+            cell.hotels = event.hotels;
+          }
+          
+          // Update money for the builder across all cells
+          this.boardCells.forEach(c => {
+            c.playersHere.forEach(player => {
+              if (player.username === event.ownerUsername) {
+                player.money -= event.price;
+              }
+            });
+          });
+          
+          // Show notifications
+          if (event.ownerUsername === this.currentUsername) {
+            this.showNotification(
+              `You built a hotel on ${event.cellName} for $${event.price}`,
+              'success',
+              '🏨'
+            );
+          } else {
+            this.showNotification(
+              `${event.ownerUsername} built a hotel on ${event.cellName}`,
+              'info',
+              '🏗️'
+            );
+          }
+        }
+      })
+    );
   }
 
   loadGame(): void {
@@ -933,6 +973,9 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
     // Must own the property
     if (cell.ownerUsername !== this.currentUsername) return false;
     
+    // Can't build house if already has hotel
+    if (cell.hotels > 0) return false;
+    
     // Max 4 houses
     if (cell.houses >= 4) return false;
     
@@ -949,6 +992,34 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
     if (cell.houses > minHousesInGroup) return false;
     
     // Must have enough money (house price is 50 for now, will be configurable)
+    const currentPlayerMoney = this.getCurrentPlayerMoney();
+    if (currentPlayerMoney < 50) return false;
+    
+    return true;
+  }
+
+  canBuildHotel(cell: BoardCell): boolean {
+    // Can only build hotels on regular properties (cellType === 1)
+    if (cell.cellType !== 1) return false;
+    
+    // Must own the property
+    if (cell.ownerUsername !== this.currentUsername) return false;
+    
+    // Must have exactly 4 houses
+    if (cell.houses !== 4) return false;
+    
+    // Can't build hotel if already has one
+    if (cell.hotels >= 1) return false;
+    
+    // Must own all properties in the color group (monopoly)
+    const propertiesInGroup = this.boardCells.filter(c => 
+      c.cellType === 1 && c.colorGroup === cell.colorGroup
+    );
+    
+    const ownsMonopoly = propertiesInGroup.every(c => c.ownerUsername === this.currentUsername);
+    if (!ownsMonopoly) return false;
+    
+    // Must have enough money (hotel price is 50 for now, will be configurable)
     const currentPlayerMoney = this.getCurrentPlayerMoney();
     if (currentPlayerMoney < 50) return false;
     
@@ -981,6 +1052,39 @@ export class PlaygroundComponent implements OnInit, OnDestroy {
         console.error('Failed to build house', error);
         this.showNotification(
           'Failed to build house: ' + (error.error?.message || 'Unknown error'),
+          'error',
+          '❌'
+        );
+      }
+    });
+  }
+
+  onBuildHotel(cellId: number): void {
+    if (this.gameId === null) return;
+
+    this.gameService.buildHotel(this.gameId, cellId).subscribe({
+      next: (playgroundInfo) => {
+        console.log('Hotel built successfully');
+        
+        // Update local state with the returned data
+        this.boardCells = playgroundInfo.boardCells;
+        this.game = playgroundInfo.game;
+        
+        // Update selected cell if it's still the same
+        if (this.selectedCell && this.selectedCell.id === cellId) {
+          this.selectedCell = this.boardCells.find(c => c.id === cellId) || null;
+        }
+        
+        this.showNotification(
+          '🏨 Hotel built successfully!',
+          'success',
+          '🏨'
+        );
+      },
+      error: (error) => {
+        console.error('Failed to build hotel', error);
+        this.showNotification(
+          'Failed to build hotel: ' + (error.error?.message || 'Unknown error'),
           'error',
           '❌'
         );

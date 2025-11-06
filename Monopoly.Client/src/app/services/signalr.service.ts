@@ -96,6 +96,15 @@ export interface HouseBuiltEvent {
   price: number;
 }
 
+export interface HotelBuiltEvent {
+  gameId: number;
+  cellId: number;
+  cellName: string;
+  ownerUsername: string;
+  hotels: number;
+  price: number;
+}
+
 export interface PlayerPositionUpdate {
   username: string;
   position: number;
@@ -120,6 +129,7 @@ export class SignalRService {
   public tradeRejected$ = new Subject<TradeRejectedEvent>();
   public propertyPurchased$ = new Subject<PropertyPurchasedEvent>();
   public houseBuilt$ = new Subject<HouseBuiltEvent>();
+  public hotelBuilt$ = new Subject<HotelBuiltEvent>();
   public playerPositions$ = new BehaviorSubject<Map<string, number>>(new Map());
 
   constructor(private authService: AuthService) {}
@@ -229,6 +239,10 @@ export class SignalRService {
 
     this.hubConnection.on('HouseBuilt', (event: HouseBuiltEvent) => {
       this.houseBuilt$.next(event);
+    });
+
+    this.hubConnection.on('HotelBuilt', (event: HotelBuiltEvent) => {
+      this.hotelBuilt$.next(event);
     });
   }
 }

@@ -14,8 +14,10 @@ export class CellInfoPopupComponent {
   @Input() currentUsername: string | null = null;
   @Input() playerMoney: number = 0;
   @Input() canBuildHouse: boolean = false;
+  @Input() canBuildHotel: boolean = false;
   @Output() close = new EventEmitter<void>();
   @Output() buildHouse = new EventEmitter<number>();
+  @Output() buildHotel = new EventEmitter<number>();
 
   getCellTypeName(cellType: number): string {
     const types: { [key: number]: string } = {
@@ -53,6 +55,12 @@ export class CellInfoPopupComponent {
   onBuildHouse(): void {
     if (this.cell) {
       this.buildHouse.emit(this.cell.id);
+    }
+  }
+
+  onBuildHotel(): void {
+    if (this.cell) {
+      this.buildHotel.emit(this.cell.id);
     }
   }
 

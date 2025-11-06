@@ -396,7 +396,9 @@ public class GameService : IGameService
                 Name = bc.Name,
                 ColorGroup = bc.ColorGroup,
                 Price = bc.Price,
+                Rent = bc.Rent,
                 Houses = bc.Houses,
+                Hotels = bc.Hotels,
                 OwnerUsername = bc.OwnerId.HasValue 
                     ? game.GamePlayers.FirstOrDefault(gp => gp.Id == bc.OwnerId.Value)?.User.Username 
                     : null,
@@ -820,9 +822,14 @@ public class GameService : IGameService
         int baseRent = cell.Rent ?? 100; // Use cell's rent value or default to 100
         int rentAmount = baseRent;
         
-        // If property has houses, rent increases by base rent for each house
+        // If property has hotel, rent = baseRent * 10
+        if (cell.Hotels > 0)
+        {
+            rentAmount = baseRent * 10;
+        }
+        // If property has houses (but no hotel), rent increases by base rent for each house
         // 0 houses = baseRent, 1 house = baseRent * 2, 2 houses = baseRent * 3, etc.
-        if (cell.Houses > 0)
+        else if (cell.Houses > 0)
         {
             rentAmount = baseRent * (cell.Houses + 1);
         }
@@ -1196,6 +1203,107 @@ public class GameService : IGameService
             OwnerUsername = gamePlayer.User.Username,
             Houses = cell.Houses,
             Price = housePrice
+        });
+
+        // Return updated playground info
+        return await GetPlaygroundInfoAsync(gameId, userId);
+    }
+
+    public async Task<PlaygroundInfoResponse?> BuildHotelAsync(int gameId, int userId, int cellId)
+    {
+        var game = await _dbContext.Games
+            .Include(g => g.GameBoard!)
+                .ThenInclude(gb => gb.BoardCells)
+            .Include(g => g.GamePlayers)
+                .ThenInclude(gp => gp.User)
+            .Include(g => g.PlayerStates)
+            .FirstOrDefaultAsync(g => g.Id == gameId);
+
+        if (game == null)
+        {
+            throw new InvalidOperationException("Game not found");
+        }
+
+        // Find the current player
+        var gamePlayer = game.GamePlayers.FirstOrDefault(gp => gp.UserId == userId);
+        if (gamePlayer == null)
+        {
+            throw new InvalidOperationException("Player not in game");
+        }
+
+        var playerState = game.PlayerStates.FirstOrDefault(ps => ps.UserId == userId);
+        if (playerState == null)
+        {
+            throw new InvalidOperationException("Player state not found");
+        }
+
+        // Find the cell
+        var cell = game.GameBoard?.BoardCells.FirstOrDefault(c => c.Id == cellId);
+        if (cell == null)
+        {
+            throw new InvalidOperationException("Cell not found");
+        }
+
+        // Validate building hotel conditions
+        if (cell.CellType != CellType.Property)
+        {
+            throw new InvalidOperationException("Can only build hotels on properties");
+        }
+
+        if (cell.OwnerId != gamePlayer.Id)
+        {
+            throw new InvalidOperationException("You don't own this property");
+        }
+
+        // Must have 4 houses to build hotel
+        if (cell.Houses < 4)
+        {
+            throw new InvalidOperationException("Must have 4 houses before building a hotel");
+        }
+
+        // Check if already has a hotel
+        if (cell.Hotels >= 1)
+        {
+            throw new InvalidOperationException("Property already has a hotel");
+        }
+
+        // Check monopoly ownership
+        var propertiesInGroup = game.GameBoard?.BoardCells
+            .Where(c => c.CellType == CellType.Property && c.ColorGroup == cell.ColorGroup)
+            .ToList() ?? new List<BoardCell>();
+
+        var ownsMonopoly = propertiesInGroup.All(c => c.OwnerId == gamePlayer.Id);
+        if (!ownsMonopoly)
+        {
+            throw new InvalidOperationException("You must own all properties in this color group to build hotels");
+        }
+
+        // Get hotel price from PropertyRentConfiguration (stored during game creation)
+        // For now, use a default price of 50 per hotel
+        int hotelPrice = 50; // TODO: Get from game configuration
+
+        // Check if player has enough money
+        if (playerState.Money < hotelPrice)
+        {
+            throw new InvalidOperationException("Not enough money to build a hotel");
+        }
+
+        // Build the hotel (remove houses and add hotel)
+        cell.Houses = 0; // Remove all 4 houses
+        cell.Hotels = 1; // Add hotel
+        playerState.Money -= hotelPrice;
+
+        await _dbContext.SaveChangesAsync();
+
+        // Broadcast hotel built event
+        await _hubContext.Clients.Group($"game_{gameId}").SendAsync("HotelBuilt", new
+        {
+            GameId = gameId,
+            CellId = cellId,
+            CellName = cell.Name,
+            OwnerUsername = gamePlayer.User.Username,
+            Hotels = cell.Hotels,
+            Price = hotelPrice
         });
 
         // Return updated playground info
