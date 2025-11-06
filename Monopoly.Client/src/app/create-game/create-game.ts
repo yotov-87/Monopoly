@@ -26,6 +26,7 @@ export class CreateGameComponent implements OnInit {
   playerCount = 2;
   minPlayers = 2;
   maxPlayers = 8;
+  useSingleDevice = true; // Default to single device mode
   currentStep = 1; // Step 1: Game settings, Step 2: Board configuration
   
   // Property configuration
@@ -121,7 +122,8 @@ export class CreateGameComponent implements OnInit {
     this.gameService.createGame({
       name: this.gameName,
       playerCount: this.playerCount,
-      customRents: customProperties
+      customRents: customProperties,
+      isSingleDevice: this.useSingleDevice
     }).subscribe({
       next: (response) => {
         console.log('Game created successfully', response);

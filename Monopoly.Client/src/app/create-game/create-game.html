@@ -43,6 +43,17 @@
         <small class="help-text">Select between {{ minPlayers }} and {{ maxPlayers }} players</small>
       </div>
       
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="useSingleDevice" 
+            name="useSingleDevice">
+          <span class="checkbox-text">🎮 Use one device for all players</span>
+        </label>
+        <small class="help-text">Enable this to play locally with virtual players controlled by the host</small>
+      </div>
+      
       <div class="button-group">
         <button id="create-game-cancel-btn" type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
         <button id="create-game-next-btn" type="submit" class="submit-btn">Next: Configure Properties</button>

@@ -6,6 +6,7 @@ export interface CreateGameRequest {
   name: string;
   playerCount: number;
   customRents?: { position: number; rent: number; }[];
+  isSingleDevice?: boolean;
 }
 
 export interface GameResponse {
