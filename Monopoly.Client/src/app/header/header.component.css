@@ -63,6 +63,16 @@ button {
   background-color: #229954;
 }
 
+.my-games-btn {
+  background-color: #9b59b6;
+  color: white;
+  font-weight: 600;
+}
+
+.my-games-btn:hover {
+  background-color: #8e44ad;
+}
+
 #header-logout-btn {
   background-color: #e74c3c;
   color: white;

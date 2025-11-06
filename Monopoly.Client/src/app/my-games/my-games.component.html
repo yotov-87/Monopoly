@@ -1,0 +1,60 @@
+<div class="my-games-container">
+  <div class="my-games-header">
+    <h1>My Games</h1>
+    <div class="header-actions">
+      <button class="refresh-btn" (click)="onRefresh()" [disabled]="loading">
+        <span>🔄</span> Refresh
+      </button>
+      <button class="create-btn" (click)="onCreateNewGame()">
+        + Create New Game
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading your games...</p>
+  </div>
+
+  <div *ngIf="error" class="error-state">
+    <p class="error-message">{{ error }}</p>
+    <button class="retry-btn" (click)="onRefresh()">Try Again</button>
+  </div>
+
+  <div *ngIf="!loading && !error && games.length === 0" class="empty-state">
+    <div class="empty-icon">🎲</div>
+    <h2>No Games Yet</h2>
+    <p>You haven't joined any games yet. Create your first game to get started!</p>
+    <button class="create-first-btn" (click)="onCreateNewGame()">
+      Create Your First Game
+    </button>
+  </div>
+
+  <div *ngIf="!loading && !error && games.length > 0" class="games-grid">
+    <div *ngFor="let game of games" class="game-card">
+      <div class="game-header">
+        <h3 class="game-name">{{ game.name }}</h3>
+        <span class="game-status" [ngClass]="getStatusClass(game.status)">
+          {{ getStatusLabel(game.status) }}
+        </span>
+      </div>
+      
+      <div class="game-info">
+        <div class="info-item">
+          <span class="info-label">Players:</span>
+          <span class="info-value">{{ game.currentPlayerCount }} / {{ game.playerCount }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Created:</span>
+          <span class="info-value">{{ game.createdAt | date:'short' }}</span>
+        </div>
+      </div>
+
+      <div class="game-actions">
+        <button class="join-btn" (click)="onJoinGame(game.id)">
+          {{ game.status === 'Waiting' ? 'Join Game' : 'Continue Game' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

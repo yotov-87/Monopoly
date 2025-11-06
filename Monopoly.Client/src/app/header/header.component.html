@@ -7,6 +7,7 @@
         <button id="header-register-btn" (click)="onRegister()">Register</button>
       } @else {
         <span class="username-display">{{ username }}</span>
+        <button id="header-my-games-btn" class="my-games-btn" (click)="onMyGames()">My Games</button>
         <button id="header-create-game-btn" class="create-game-btn" (click)="onCreateGame()">Create New Game</button>
         <button id="header-logout-btn" (click)="onLogout()">Logout</button>
       }

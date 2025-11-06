@@ -37,4 +37,8 @@ export class HeaderComponent {
   onCreateGame(): void {
     this.router.navigate(['/create-game']);
   }
+
+  onMyGames(): void {
+    this.router.navigate(['/my-games']);
+  }
 }
